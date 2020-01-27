@@ -1,0 +1,110 @@
+\documentclass[10pt,conference]{ieeeconf}
+
+\usepackage{graphicx}
+\usepackage{algorithm}% http://ctan.org/pkg/algorithm
+\usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage{xcolor}
+\usepackage{subfig}
+\usepackage{amsmath}
+\usepackage{pdfpages}
+\usepackage{epstopdf}
+\usepackage{color}
+\usepackage{amssymb}
+\usepackage{fixmath}
+\usepackage{optidef}
+\usepackage{subfig}
+\usepackage{amssymb}
+
+\graphicspath{{./Images/}}
+
+\IEEEoverridecommandlockouts
+\begin{document}
+
+\title{Title}
+% should be concise and informative to broad readers and attract attention from potential readers.
+
+
+\author{Author 1, Author 2, Author 3, and Rose T. Faghih \thanks{Author 1, Author 2, Author 3, and Rose T. Faghih are with the Department of Electrical and Computer Engineering at the University of Houston, Houston, TX 77004 USA (e-mail: \tt\small  email 1,email 2,email 3, rtfaghih@uh.edu).} 
+}
+
+
+\maketitle
+
+\begin{abstract}
+Structured Abstract must be fewer than 250 words including the following 5 points and words: objective, methods, results, conclusion, and significance, to highlight the problem being addressed, innovations of the work, major findings and significance. 
+
+\end{abstract}
+
+\section{Introduction} \label{introduction}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut nec tellus sed nisi vestibulum suscipit. Maecenas eget diam vitae mi ornare laoreet vitae a felis. Vivamus vitae tempus dolor. Morbi vel elit mollis, sagittis augue quis, pretium justo. Integer eget porta sem. Etiam at suscipit libero. Vestibulum consectetur iaculis congue. Fusce et orci ut purus sagittis porttitor. Suspendisse eget dolor non purus volutpat feugiat. Sed ut elit quis tellus tristique venenatis. Nullam dignissim, enim sagittis ullamcorper tincidunt, nisl lorem congue lorem, nec ultricies enim est a leo. Mauris non interdum odio. Praesent sit amet auctor nisl.
+
+\section{Methods} \label{method}
+
+Quisque eu auctor purus. Proin feugiat ante sed diam bibendum vulputate. Suspendisse euismod pretium turpis, eget posuere eros vehicula in. Vivamus porta ornare ex sit amet sollicitudin. In hac habitasse platea dictumst. Vivamus placerat dolor sed mi dictum finibus. Fusce gravida massa libero, eget efficitur justo auctor at. Nulla ullamcorper, lorem ac rutrum accumsan, nunc diam lacinia velit, in varius arcu erat id urna. Cras nec turpis sed dui pulvinar faucibus. Proin facilisis at arcu at dignissim. Mauris sed odio a libero vestibulum tristique a vitae nunc. Nulla a iaculis massa. Sed ex lectus, molestie eu efficitur quis, posuere sit amet nisl. Praesent sit amet venenatis felis. Nulla iaculis in risus in fringilla.
+
+\subsection{Data}
+
+Morbi porttitor a enim quis finibus. Ut tristique, magna a luctus mattis, turpis massa commodo neque, at efficitur ante tortor eu erat. Donec gravida, ipsum nec elementum feugiat, nisi velit ultricies sem, et egestas mauris urna vitae sem. Donec placerat turpis quis sem hendrerit, ut accumsan mauris ornare. Aenean ut porttitor lectus, sed lobortis nunc. Phasellus eu fermentum lorem. Sed quis ex porttitor, euismod sapien pretium, tempor nisl. Nullam sollicitudin nisi vitae dui malesuada aliquam. Quisque ac felis ac urna mollis fringilla et ut leo. Integer tincidunt dui leo, vitae accumsan metus dapibus nec. Donec nec leo congue justo porta commodo a a libero. Donec vitae justo odio. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Vivamus in cursus dolor. Sed et lobortis elit, et molestie eros. Maecenas in felis finibus, lobortis tellus quis, venenatis tellus.
+
+\subsection{Approach}
+
+Nunc condimentum interdum pretium. Donec a pellentesque ex. Curabitur faucibus auctor suscipit. Pellentesque eleifend libero at vulputate mattis. Pellentesque varius dolor vel dapibus dapibus. Sed convallis risus a ipsum venenatis luctus. Nam ullamcorper accumsan nisl, ac suscipit odio laoreet ac. Praesent vulputate ante convallis velit pellentesque, eget dictum metus vulputate. Fusce rhoncus feugiat aliquet. Maecenas tempus fermentum vehicula. Vivamus sed arcu in magna ornare mattis non in justo. Fusce tempor ac dui id mattis. Donec et odio non ante blandit pharetra eget ut augue. Nunc venenatis posuere dolor.
+
+
+\begin{table}[H]
+\centering
+\caption{Sample Table}
+\label{tab:1}       % Give a unique label
+% For LaTeX tables use
+%\scalebox{0.95}{
+\begin{tabular}{ccc}
+\hline\noalign{\smallskip}
+c1 & c2 & c3\\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+r1 & 1 & 2 \\
+r2 & 3 & 4 \\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+\end{tabular}
+\end{table}
+
+\begin{algorithm}[H]
+  \caption{Sample Algorithm}\label{euclid}
+  \begin{algorithmic}[1]
+   \State Initialize
+   \For{\texttt{i= 1,2,3,...}}
+   \State Set 
+  \EndFor
+\State Tell about the instructions.  
+\end{algorithmic}
+\end{algorithm} 
+
+Sed in pharetra risus, in condimentum lacus. Nam nulla erat, viverra id neque id, tincidunt molestie sapien. Nullam in lorem euismod, luctus tellus in, mollis urna. Mauris auctor sollicitudin velit, sed aliquet leo varius non. Phasellus id viverra libero, at convallis augue. Proin fringilla nisl eu venenatis laoreet. Etiam semper enim ut neque pretium, id pharetra metus scelerisque. Etiam ut placerat ligula. Proin leo massa, dapibus sed magna vel, convallis finibus lorem. Nulla sapien quam, posuere pretium sem sit amet, hendrerit pulvinar nunc. Morbi dapibus blandit quam ornare finibus. Maecenas molestie semper auctor. Aliquam finibus, tortor et sollicitudin viverra, diam dolor faucibus nulla, non faucibus dui dui vitae ipsum. Donec ultrices, enim accumsan suscipit interdum, orci nisl rhoncus purus, at lobortis leo lacus ac eros.
+
+\begin{align}\label{eqn:model}
+    x_{k+1} &= x_k +\omega_k
+\end{align}
+The way that you reference an equation is like (\ref{eqn:model}) .
+
+\section{Results}
+
+Any results will be presented here.
+Following you may find how to present a figure:
+
+\begin{figure}[h]
+\centering
+  \includegraphics[scale=1]{uh-primary.png}
+  \caption{Sample figure.}
+  \label{fig:uh}
+\end{figure}
+
+\section{Discussion}
+Any discussion presented here.
+
+\section{Conclusion}
+Any Conclusion, the work achievements and the future directions will be presented here \cite{wickramasuriya2019skin}.
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}
