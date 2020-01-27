@@ -10,6 +10,7 @@ Now the project is being processed. We will update more informations in the futu
 
 1. Add the notes from Jin Lu.
 2. Finish the abstract.
+3. Fix some typos.
 
 ### 0.1-a @ 01/26/2020
 
