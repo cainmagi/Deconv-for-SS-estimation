@@ -6,6 +6,11 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.1 @ 01/27/2020
+
+1. Add the notes from Jin Lu.
+2. Finish the abstract.
+
 ### 0.1-a @ 01/26/2020
 
-1. Finish the abstract.
+1. Begin to work on the abstract.
