@@ -6,6 +6,10 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.1 @ 02/05/2020
+
+1. Archive this branch.
+
 ### 0.1 @ 01/27/2020
 
 1. Add the notes from Jin Lu.
