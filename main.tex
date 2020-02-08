@@ -14,6 +14,10 @@
 \usepackage{optidef}
 \usepackage{subfig}
 \usepackage{amssymb}
+\usepackage{cite}
+\usepackage{array,tabularx}
+\usepackage{booktabs}
+\usepackage{cleveref}
 
 \graphicspath{{./Images/}}
 
@@ -33,42 +37,58 @@
 
 \begin{abstract}
 
-The sudden occurrence of the health-related abnormal events has been a critical issue with respect to the report of worldwide deaths. A reliable and robust health monitoring method is significant. Currently the electrical activities (EDA) have been thought as effective for detecting abnormal health patterns. This report summarizes the works related to analyzing the skin conductance (SC) data. The data is viewed as a composition of the tonic signal and the multichannel phasic signal, where the tonic component is smooth and the phasic signal is periodic. After separating the phasic signal from the raw data, it is deconvoluted by solving an inverse problem of a state-space model. Both the component separation and the deconvolution are formulated by regularized optimization problems. We will focus on the jointly multichannel inversion for the component separation and the deconvolution.
+The abstract should be left blank until we finish the main part of the paper.
 
 \end{abstract}
 
 \section{Introduction} \label{introduction}
 
-The multichannel SC signal could be viewed as in the following form:
+Analyzing the electrical activities of neurons is an important issue in the physiological field. By applying the electrodes, intramuscular needles or some other wearable devices, the neuron activities could be detected by different kinds of indirect methods including the electroencephalogram, electrodermal activities~\cite{savazzi2019estimation,jain2016compressed,amin2019robust}, electromyography signals~\cite{biagetti2016homomorphic}, calcium imaging, and some other approaches. The study of the neural activities could be utilized in many applications, like predicting people's emotions, monitoring the health-related abnormal events, and developing the brain-computer interface.
+
+In this work, we concentrate on the study of electrodermal activities (EDA). EDA could be collected by measuring the skin conductance (SC) reacted to activities of people's sweat glands. The sensors for detecting EDA could be placed on either the hand palms, fingers, legs or feet. Previous works~\cite{fowles1981publication,amin2019robust} show that the EDA of different body parts is controlled by the universal neural signal from the autonomic nervous system (ANS). Within this hypothesis, the EDA could be modeled as a group of multichannel SC signals, where one channel represents the collected SC from a specific body part. For any channel $n$, the signal could be formulated by
 \begin{align}
-  \mathbf{y}_{\rm{SC}_n}(t) = \mathbf{p}_n(t) + \mathbf{s}_n(t) + \mathbf{v}_n(t),
+  y_{\rm{SC}_n}(t) = p_n(t) + s_n(t) + \nu_n(t),
 \end{align}
-
-where $\mathbf{s}_n(t)$ is the tonic component representing the influence of the body thermoregulation, $\mathbf{p}_n(t)$ is the phasic component thought as reflected from the activity of the autonomic nervous system (ANS), and $\mathbf{v}_n(t)$ is the additive noise. $n$ is the channel number. Different from the slow-varying tonic component, the phasic component is fast-varying and periodic, which makes it possible to separate the two signals. A multichannel state-space control system could be built for describing how neural stimuli (neural spiking activity) get converted into the phasic component. The inverse problem is designed based on the forward system.
-
-\section{Methods}
-
-The main workflow of the interpretation for SC could be divided into three phases:
-
-\begin{enumerate}
-  \item Separating the tonic component and the phasic component from the original raw data.
-  \item Deconvolve the phasic component to recover the neural stimuli.
-  \item Interpret the neural stimuli, like estimating the human stress from the data.
-\end{enumerate}
-
-We would only concentrate on the first and the second step. The target of our work is designing a concurrent deconvolution and tonic component separation method for the multichannel SC data.
-
-\subsection{Component separation}
-
-Previously there some works on the tonic component separation. \cite{greco2014electrodermal} formulates the separation as a quadratic programming problem, where the phasic component and the tonic component are decomposed by the basis of the biexponential Bateman functions and the B-spline functions respectively. In~\cite{amin2019tonic}, the author proposes a generalized-cross-validation-based block coordinate descent approach. In this approach, the phasic component is modeled by a second-order equation, while the tonic component is regarded as a summation of a series of P shifted and weighted cubic B-spline functions. Then the problem is solved by minimizing an $\ell_p$ penalized loss function.
+%
+where $\mathbf{s}_n(t)$ is the tonic component representing the influence of the body thermoregulation, $p_n(t)$ is the phasic component thought as reflected from the activity of ANS, and $v_n(t)$ is the additive noise. Different from the slowly drifting tonic component, the phasic component is fast-varying and periodic, which makes it possible to separate the two signals by building two different mathematical models. Both the tonic component and the phasic component could be regarded as a linear composition of different basis, or a group of kernels convoluted on spike signals in time series. The interpretation for SC could be formulated as a deconvolution problem which requires a solution for the spike signals based on knowing the composed signal $y_{\rm{SC}_n}(t)$.
 
 \subsection{Deconvolution}
 
-The deconvolution could be formulated as an optimization problem. \cite{wickramasuriya2019skin} focuses on the single-channel deconvolution problem, which is penalized and constrained. The author uses a coordinate descent approach to solve the problem and maintain the constraint alternatively. In \cite{hernando2017feature}, the author solves the signal separation and the deconvolution jointly. The forward modeling system is approximated by pre-defined biexponential waveforms. \cite{amin2019robust} proposes a state-space control system for formulating the multichannel forward problem and combines the GCV and FOCUSS+ algorithms together. Unlike \cite{amin2019tonic}, the proposed algorithm does not require to set fixed penalizing parameters but incorporating the problem of finding the best penalization as a part of the optimization.
+The neural stimuli from the ANS is though as spike signals. While after the signal is conducted to the sweat glands, the signals are smoothly filtered due to the physiological effects. After applying the deconvolution, the estimated neural stimuli could be used for denoising, emotion predictions, or health monitoring. \textit{Caruelle et. al.}~\cite{caruelle2019use} summarizes the applications of the EDA analysis in recent years. For more details, \textit{Posada et.al.}~\cite{posada2020innovations} provides a review on the previous deconvolution methods with the EDA data. Similar to EDA, the other kinds of signals could be also used for studying the neuron activities by deconvotion. In \cref{tab:literature}, we inspect on several works on deconvolution with different data. For the simplest case, the spike signal could be retrieved by applying a threshold and performing the local maximum searching~\cite{kaur2016remote,subramanian2019systematic}. In most works, the deconvolution is solved by formulating an optimization problem based on a linear model, including the Bateman function~\cite{savazzi2019estimation,greco2014electrodermal,greco2015cvxeda,amin2019tonic,hernando2017feature,wickramasuriya2019skin}, the AR-1 model~\cite{friedrich2017fast}, and the state-space model~\cite{kazemipour2017fast,amin2019robust}. 
 
-\subsection{Conclusion and further extension}
+The complexity of the deconvolution differs in different works. In \cite{hernando2017feature}, the linear model is composed of several fixed basis. In \cite{greco2014electrodermal,greco2015cvxeda,amin2019tonic,wickramasuriya2019skin,kazemipour2017fast,amin2019robust}, although there is a single basis, the shape of the basis could be learned. Particularly, some researches assume that the linear model is totally unknown. By only giving an initial guess, the modeling function is also optimized by blind deconvolution~\cite{kaur2016remote,friedrich2017fast}. There is no best option for modeling the forward function. For a large scale application, the problem requires to be formulated properly according to the computational consumption.
 
-In previous works, the tonic component separation and the phasic component deconvolution are performed individually. Since both the modeling method and the inversion method in \cite{amin2019robust} are designed for the multichannel case, the previous tonic separation works designed for single-channel data may be not accurate. The basic idea is replacing the forward modeling method in \cite{amin2019tonic} by the multichannel version in \cite{amin2019robust}. Another inspection is that in \cite{amin2019robust}, the rise and decay times ($\tau_r$, $\tau_d$) are fixed. If time is available, we may explore the possibility to make the $\tau_r$ and $\tau_d$, i.e. the waveforms parameters learnable.
+Most of the mentioned works are dealing with single channel data, while in \cite{friedrich2017fast,amin2019robust}, a multichannel scheme is introduced for improving the robustness of the predictions. In the practice, observations are mixed with the noise, which may influence the accuracy of the deconvolved spikes. The motivation of introducing multichannel data is based on the hypothesis that the same neural stimuli is shared by the data acquired by different observations. When the multichannel data is deconvolved jointly, the noise from different channels could be attenuated by each other, thus the problem could converge on a better solution.
+
+\begin{table*}[htbp]
+  \centering
+  \normalsize
+  \caption{A summary of the previous works about deconvolution.}
+  \label{tab:literature}
+  \begin{tabular}{m{0.14\textwidth}<{\raggedright}m{0.14\textwidth}<{\raggedright}m{0.65\textwidth}}
+    \toprule
+    \multicolumn{1}{c}{Study} & \multicolumn{1}{c}{Data} & \multicolumn{1}{c}{Methodology} \\ \midrule
+    \textit{Friedrich et. al.}~\cite{friedrich2017fast} & Calcium imaging data & The conversion from the calcium spikes to the observed fluorescenc signals is described as an AR-p model. The authors propose an algorithm, OASIS for solving the constrained optimization problem in the AR-1 case. \\
+    \textit{Kazemipour et. al.}~\cite{kazemipour2017fast} & Calcium imaging data & Develop a compressible state-space model for describing the data. The spikes are designed as the innovation sequence of the state. The optimization problem is solved by a nested Expectation-Maximization algorithm. \\
+    \textit{Kaur et. al.}~\cite{kaur2016remote} & Electro-cardiogram & Introduce two methods. The first method is based on curve fitting and local maximum searching. The second method is Blind Deconvolution, where the kernel and the spikes are optimized alternatively. \\
+    \textit{Mesin}~\cite{mesin2019single} & Electromyogram & Model the EMG signal by motor unit kernels. The deconvolution is performed by solving an $\ell_1$ regularized optimization problem by the iterative reweighted least square algorithm. \\
+    \textit{Antink et. al.}~\cite{friedrich2017fast} & ECG, ABP and PPG & The author use the blind deconvolution to solve the heart beat spikes. This paper introduces a multi-observation scheme by assuming a universal spike data. \\
+    \textit{Subramanian et. al.}~\cite{subramanian2019systematic} & EDA & Use a low-pass FIR filter to isolate the tonic component, the spike is found by searching local maximum in phasic component. \\ 
+    \textit{Savazzi et. al.}~\cite{savazzi2019estimation} & EDA & The tonic component and noise is removed by a low-pass FIR filter. The phasic component is modeled by Bateman function. The spike is acquired by optimization. \\ 
+    \textit{Jain et. al.}~\cite{jain2016compressed} & EDA & Involve the compress sensing into the deconvolution. The optimization is performed on the differential signal to eliminate the influence of sudden changes of the tonic component. \\
+    \textit{Greco et. al.}~\cite{greco2014electrodermal} & EDA & The tonic component is estimated by Gaussian smoothing and interpolation. The spike is solved by modeling the phasic component with Bateman function. \\ 
+    \textit{Greco et. al.}~\cite{greco2015cvxeda}, \textit{Amin and Faghih}~\cite{amin2019tonic} & EDA & Model the phasic component and the tonic component by Bateman function and spline function respectively, then formulate the deconvolution as a joint constrained convex optimization problem. \\ 
+    \textit{Hernando et. al.}~\cite{hernando2017feature} & EDA & The tonic and phasic components are decomposed by two groups of pre-defined bases. The phasic component basis is designed by using Bateman function. \\
+    \textit{Wickramasuriya et. al.}~\cite{wickramasuriya2019skin} & EDA & The tonic component is isolated by using cvxEDA~\cite{greco2015cvxeda}. The phasic component is decomposed by a basis based on Bateman function. The deconvolution is solved by a hybrid algorithm based on GCV and FOCUSS+. \\
+    \textit{Amin and Faghih}~\cite{amin2019robust} & EDA & The authors propose a multichannel deconvotion scheme. The tonic component is removed by using cvxEDA~\cite{greco2015cvxeda} on each channel, and the phasic component is formulated by a state-space model. The deconvolution is solved by the hybrid algorithm GCV-FOCUSS+. \\ \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Tonic separation}
+ 
+Previously there some works on the tonic component separation. In \cite{van1967skin}, the raw EDA signal is decomposed as absolute change in conductance, change as a ratio of the basic conductance level (BLC), and log conductance change. In \cite{green2014development}, the author proposes a method of automated analysis of SCR data in the contexts of event-related cognitive tasks and nonspecific responding to complex stimuli. \cite{greco2014electrodermal} formulates the separation as a quadratic programming problem, where the phasic component and the tonic component are decomposed by the basis of the biexponential Bateman functions and the B-spline functions respectively. To solve the problem that the tonic component may overlap each other, \textit{Vartak et. al.} proposes a mathematical model fitting procedure is used to separate these overlapping components. Features are extracted using the mathematical model fitting procedure. In~\cite{amin2019tonic}, the author proposes a generalized-cross-validation-based block coordinate descent approach. In this approach, the tonic component is regarded as a summation of a series of P shifted and weighted cubic B-spline functions. Then the problem is solved by minimizing an $\ell_p$ penalized loss function. Especially, inspired by compress sensing, \textit{Jain et. al.}~\cite{jain2016compressed} builds a model for separating the difference of the signal instead of the raw signal. This idea is effective for eliminating the interference caused by sudden changes of the tonic component.
+
+In some previous works, the tonic component separation and the phasic component deconvolution are performed individually~\cite{greco2014electrodermal,amin2019robust}. Since both the modeling method and the inversion method in \cite{amin2019robust} are designed for the multichannel case, the previous tonic separation works designed for single-channel data may cause deviation for the solution. In our work, we extend the multichannel deconvolution into the joint optimization for solving the tonic component in the multichannel case. With this scheme, the neural stimuli from the ANS is though to be shared, while the solution for the composition of tonic basis is assumed to be different in different channels.
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}
