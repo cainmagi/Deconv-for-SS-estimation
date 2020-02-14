@@ -8,9 +8,11 @@ Now the project is being processed. We will update more informations in the futu
 
 This project is our baseline reference. The work is done by *Amin, MD Rafiul*, and *Rose T. Faghih*. The original readme text is as bellow:
 
->> Please see the example matlab file "`Exp_on_real_data_3_channel_4_25_2019`"
->> If you are any part of the repository please cite the following paper:
->> Amin, MD Rafiul, and Rose T. Faghih. "[Robust Inference of Autonomic Nervous System Activation Using Skin Conductance Measurements: A Multi-Channel Sparse System Identification Approach.][paper-robust]" IEEE Access 7 (2019): 173419-173437.
+> Please see the example matlab file "`Exp_on_real_data_3_channel_4_25_2019`"
+
+> If you are any part of the repository please cite the following paper:
+
+> Amin, MD Rafiul, and Rose T. Faghih. "[Robust Inference of Autonomic Nervous System Activation Using Skin Conductance Measurements: A Multi-Channel Sparse System Identification Approach.][paper-robust]" IEEE Access 7 (2019): 173419-173437.
 
 ## Description for the datasets
 
