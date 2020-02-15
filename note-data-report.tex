@@ -42,7 +42,7 @@ In this report, we will inspect on the above 6 kinds of data in the raw set. We 
 
 \section{Inspection on the raw dataset}
 
-The dataset contains records for 731.7 seconds. First, we design a function \texttt{show\_raw\_dataset} for showing the raw dataset. The codes could be found in the Github project~\cite{jin2020}. In the following part, we will show all of the results respectively.
+The dataset contains records for about 700 seconds. First, we design a function \texttt{show\_raw\_dataset} for showing the raw dataset. The codes could be found in the Github project~\cite{jin2020}. In the following part, we will show all of the results respectively.
 
 In the following part, we take the $6^{\mathrm{th}}$ data as an example. As shown in \autoref{fig:raw-marks}, channel 1 provides the exact time when the loud sound presents. The loud sound will happen about one minute after the measurement begins. The time interval between two sounds is about 30 seconds. Total number of sound events is 20 and the measurement duration is more than 700 seconds. 
 
@@ -121,7 +121,17 @@ The pre-processing is aimed at removing the outliers in the raw signal. This is 
 
 Then the data is processed by cvxEDA~\cite{greco2015cvxeda}. The cvxEDA is designed for deconvolution with component separation. It is used for separating the tonic component from the raw signal. The separation is performed on each channel for each data. To show the results, we design a function \texttt{show\_arranged\_dataset}. The separated signals are plotted in \autoref{fig:sep-signal}. Note that in \autoref{fig:sep-signal-medial}, since the data is pre-processed, the outliers are removed compared to \autoref{fig:raw-medial}.
 
-Finally, after running the script \texttt{Exp\_on\_real\_data\_3\_channel\_4\_25\_2019}, we could use another script \texttt{plot\_figure\_for\_journal} to display the final deconvolved results. \autoref{fig:deconv} show the results within 200 seconds. The multichannel deconvolution is solely performed on phasic components. The scatters represent the input phasic components, and the green lines represent the reconstructed signals with the extracted spikes.
+The separation may be inaccurate when the tonic component changes sharply. \autoref{fig:failure} shows an example of bad extraction, where the phasic component has two abnormal peaks. To get rid of such artifacts, \textit{Jain et. al.}~\cite{jain2016compressed} proposes that working on differentiated data rather than the original data may be helpful. We think that using sliding window may be also a possible approach.
+
+\begin{figure}[htbp]
+  \centering
+  \subfigure[Raw data.]{\includegraphics[width=0.9\textwidth]{data/sep-fa-1}}
+  \subfigure[Zoomed data.]{\includegraphics[width=0.9\textwidth]{data/sep-fa-2}}
+  \DeclareGraphicsExtensions.
+  \caption{GSR on the thenar/hypothenar of the non-dominant hand of the $3^{\mathrm{rd}}$ participant.} \label{fig:failure}
+\end{figure}
+
+Finally, after running the script \texttt{Exp\_on\_real\_data\_3\_channel\_4\_25\_2019}, we could use another script \texttt{plot\_figure\_for\_journal} to display the final deconvolved results. \autoref{fig:deconv} show one example containing results within 200 seconds. The multichannel deconvolution is solely performed on phasic components. The scatters represent the input phasic components, and the green lines represent the reconstructed signals with the extracted spikes.
 
 \begin{figure}[htbp]
   \centering
