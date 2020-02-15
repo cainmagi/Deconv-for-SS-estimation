@@ -6,6 +6,10 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.3 @ 02/14/2020
+
+1. Archive the works on literature review.
+
 ### 0.2 @ 02/08/2020
 
 1. Finish the first edition of the draft for the introduction and literature review.
