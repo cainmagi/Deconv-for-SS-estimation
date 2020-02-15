@@ -64,6 +64,7 @@ Data are stored as .mat files for use with MATLAB (The MathWorks Inc., Natick, U
 ### 0.3 @ 02/14/2020
 
 1. Add the reference project branch.
+2. Add functions for plotting results.
 
 ### 0.2 @ 02/08/2020
 

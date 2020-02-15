@@ -1,6 +1,14 @@
 # Omit all data
 *.mat
 
+# Omit figures
+*.png
+*.jpg
+*.eps
+*.pdf
+*.svg
+*.fig
+
 # Windows default autosave extension
 *.asv
 
