@@ -1,0 +1,128 @@
+\documentclass[]{article}
+
+\usepackage{amsmath,amssymb,amsbsy}
+\usepackage[letterpaper,total={6in,8in}]{geometry}
+\usepackage[colorlinks]{hyperref}
+
+\ifpdf
+  \RequirePackage{graphicx}
+  \RequirePackage{epstopdf}
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.png,.jpg}
+\else
+  \RequirePackage[dvipdfmx]{graphicx}
+  \RequirePackage{bmpsize}
+  \DeclareGraphicsExtensions{.eps,.pdf,.jpeg,.png,.jpg}
+\fi
+\graphicspath{{pics/},}
+\RequirePackage{subfigure}
+\RequirePackage{empheq}
+\providecommand{\subfigureautorefname}{\figureautorefname}
+
+%opening
+\title{Theory Report for ``Multichannel Deconvolution of Skin Conductance Data: Concurrent Separation of Tonic and Phasic Component''}
+\author{Yuchen Jin, Jin Lu}
+
+\providecommand{\od}{\mathrm{d}}
+
+\begin{document}
+
+\maketitle
+
+\section{Theory}
+
+For any channel $n$, the skin conductance (SC) could be decomposed by a phasic component and a tonic component,
+\begin{align}
+  y_{\rm{SC}_n}(t) = p_n(t) + s_n(t) + \nu_n(t),
+\end{align}
+where the phasic component $p_n(t)$ is stimulated by the autonomic nervous system (ANS), and the tonic component $s_n(t)$ is influenced by the thermoregulation. In this work, we will model both components by different methods. The phasic component is decomposed by a series of state-space models sharing the same input, while the tonic component is described as a combination of different spline functions. Based on the theory-based multichannel forward modeling, the stimuli from the ANS could be solved by a joint optimization. In the meanwhile, the tonic component would be extracted from the data.
+
+\subsection{Modeling the phasic component by a multichannel state-space model}
+According to the presumption in \cite{alexander2005separating,society2012publication,amin2019robust}, the phasic components detected in different regions of the body are regulated by the same ANS signal, the detected phasic component for channel $n$ could be formulated by
+\begin{align}
+  p_n(t) = \alpha_n \zeta_n (t),
+\end{align}
+where $\alpha_n$ denotes the attenuation caused by the conduction of the EDA, $\zeta_n(t)$ is a internal variable representing the conducted signal from the same ANS. Mathematically, $\zeta_n(t)$ is modeled by a smoothing filter applied to the neural stimuli $u(t-\beta_n)$. The conduction delay $\beta_n$ shows that the same stimuli would be detected at different moments. Generally, the neural stimuli could be defined as a time-series spike signal, i.e. $u(t) = \sum_{i=1}^N q_i \delta(t - \Delta_i)$. Given $u(t)$, \textit{Alexander et al.}~\cite{alexander2005separating} provides a second-order ordinary differential equation to describe $\zeta_n(t)$,
+\begin{align} \label{fml:the:ode}
+  \tau_r \tau_d \frac{\od^2 \zeta_n(t)}{\od t^2} + (\tau_r + \tau_d) \frac{\od \zeta_n(t)}{\od t} + \zeta_n(t) = u(t - \beta_n).
+\end{align}
+
+The difference between different channels in \eqref{fml:the:ode} is only the time delay. In other words, the solutions of $\zeta_n(t)$ for different $n$ are the same except the time delay. To solve \eqref{fml:the:ode}, \textit{Faghih et al.}~\cite{faghih2015characterization} propose a state space model. Incorporating the time delay into the internal signal $\zeta_n(t)$, we denote another internal state $x^{(n)}_2 (t)$ as $\zeta_n(t + \beta_n)$. The state-space model could be formulated as the following form,
+\begin{subequations} \label{fml:the:state-raw}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \dot{x}^{(n)}_1 (t) &= a x^{(n)}_1(t) + b u(t),\\
+    \tau_r \tau_d \dot{x}^{(n)}_2 (t) &= c x^{(n)}_1(t) + d x^{(n)}_2(t), \label{fml:the:state-raw-2}\\
+    y_n (t) &= \alpha_n x^{(n)}_2(t).
+  \end{empheq}
+\end{subequations}
+where $x^{(n)}_1(t)$ is another internal state. To solve the coefficients $a, b, c, d$, we eliminate $x^{(n)}_1(t)$ in \eqref{fml:the:state-raw-2},
+\begin{equation} \label{fml:the:ode-from-state}
+  \begin{aligned}
+    \tau_r \tau_d \ddot{x}_2 (t) &= c \dot{x}^{(n)}_1(t) + d \dot{x}^{(n)}_2(t) = c \left(a x^{(n)}_1(t) + b u(t) \right) + d \dot{x}^{(n)}_2(t) \\
+    &= a ( \tau_r \tau_d \dot{x}^{(n)}_2 (t) - d x^{(n)}_2(t) ) + bc u(t) + d \dot{x}^{(n)}_2(t), \\
+    &= (a \tau_r \tau_d + d) \dot{x}^{(n)}_2 (t) - a d x^{(n)}_2(t) + bc u(t).
+  \end{aligned}
+\end{equation}
+
+To ensure the coherence between \eqref{fml:the:ode} and \eqref{fml:the:ode-from-state}, we have,
+\begin{subequations}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    a \tau_r \tau_d + d &= - \tau_r - \tau_d,\\
+    ad &= 1, \\
+    bc &= 1. 
+  \end{empheq}
+\end{subequations}
+
+Given $a = -\frac{1}{\tau_r}$ and $b = \frac{1}{\tau_r}$, we could solve the above equations, and substitute the solutions into \eqref{fml:the:state-raw},
+\begin{subequations} \label{fml:the:state-sing}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \begin{bmatrix}
+      \dot{x}^{(n)}_1 (t) \\ \dot{x}^{(n)}_2 (t)
+    \end{bmatrix} &= \begin{bmatrix}
+      -1/{\tau_r} & 0 \\ 1/{\tau_d} & -1/{\tau_d}
+    \end{bmatrix} \begin{bmatrix}
+      x^{(n)}_1(t) \\ x^{(n)}_2 (t)
+    \end{bmatrix} + \begin{bmatrix}
+      1/{\tau_r} \\ 0
+    \end{bmatrix} u(t), \\
+    y_n (t) &= \alpha_n x^{(n)}_2(t).
+  \end{empheq}
+\end{subequations}
+
+Given the single-channel transmission matrix $\phi=\begin{bmatrix}
+-1/{\tau_r} & 0 \\ 1/{\tau_d} & -1/{\tau_d}
+\end{bmatrix}$, we could derive \eqref{fml:the:state-sing} into the multichannel form. When we have $\chi$ channels of data, the multichannel state-space model is
+\begin{subequations} \label{fml:the:state-mul}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \dot{\mathbf{x}} (t) &= \mathbf{A} \mathbf{x} (t) + \mathbf{B} u (t), \\
+    \mathbf{y} (t) &= \mathbf{C} \mathbf{x} (t),
+  \end{empheq}
+\end{subequations}
+where $\mathbf{x} (t) = \begin{bmatrix}
+  x^{(1)}_1 (t) \\ x^{(1)}_2 (t) \\ \vdots \\ x^{(\chi)}_1 (t) \\ x^{(\chi)}_2 (t)
+\end{bmatrix}$, $\mathbf{y} (t) = \begin{bmatrix}
+  y_1 (t) \\ y_2 (t) \\ \vdots \\ y_{\chi} (t)
+\end{bmatrix}$, $\mathbf{A} = \begin{bmatrix}
+  \phi & \mathbf{0} & \cdots & \mathbf{0} \\
+  \mathbf{0} & \phi & \cdots & \mathbf{0} \\
+  \vdots & \vdots & \ddots & \vdots \\
+  \mathbf{0} & \mathbf{0} & \cdots & \phi
+\end{bmatrix}$, $\mathbf{B} = \begin{bmatrix}
+  1/{\tau_r} \\ 0 \\ \vdots \\ 1/{\tau_r} \\ 0
+\end{bmatrix}$, and\\$\mathbf{C} = \begin{bmatrix}
+  0 & \alpha_1 & 0 & 0 & \cdots & 0 & 0 \\ 0 & 0 & 0 & \alpha_2 & \cdots & 0 & 0 \\ \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\ 0 & 0 & 0 & 0 & \cdots & 0 & \alpha_{\chi}
+\end{bmatrix}$.
+
+The above model could be rewritten as a discretized model. Denote the sampling rates of the observation and the neural stimuli as $T_y$ and $T_u$ respectively, we could formulate the discretion of the time as $t_k = k T_y$ and $\Delta_i = i T_u$ for both signals.
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}
