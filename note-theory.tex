@@ -14,6 +14,13 @@
   \DeclareGraphicsExtensions{.eps,.pdf,.jpeg,.png,.jpg}
 \fi
 \graphicspath{{pics/},}
+
+\RequirePackage{algorithm}
+\RequirePackage{algorithmic}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\providecommand{\algorithmautorefname}{Algorithm}
+
 \RequirePackage{subfigure}
 \RequirePackage{empheq}
 \providecommand{\subfigureautorefname}{\figureautorefname}
@@ -36,7 +43,7 @@ For any channel $n$, the skin conductance (SC) could be decomposed by a phasic c
 \end{align}
 where the phasic component $p_n(t)$ is stimulated by the autonomic nervous system (ANS), and the tonic component $s_n(t)$ is influenced by the thermoregulation. In this work, we will model both components by different methods. The phasic component is decomposed by a series of state-space models sharing the same input, while the tonic component is described as a combination of different spline functions. Based on the theory-based multichannel forward modeling, the stimuli from the ANS could be solved by a joint optimization. In the meanwhile, the tonic component would be extracted from the data.
 
-\subsection{Modeling the phasic component by a multichannel state-space model}
+\subsection{Model the phasic component with a multichannel state-space representation}
 According to the presumption in \cite{alexander2005separating,society2012publication,amin2019robust}, the phasic components detected in different regions of the body are regulated by the same ANS signal, the detected phasic component for channel $n$ could be formulated by
 \begin{align}
   p_n(t) = \alpha_n \zeta_n (t),
@@ -120,7 +127,94 @@ where $\mathbf{x} (t) = \begin{bmatrix}
   0 & \alpha_1 & 0 & 0 & \cdots & 0 & 0 \\ 0 & 0 & 0 & \alpha_2 & \cdots & 0 & 0 \\ \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\ 0 & 0 & 0 & 0 & \cdots & 0 & \alpha_{\chi}
 \end{bmatrix}$.
 
-The above model could be rewritten as a discretized model. Denote the sampling rates of the observation and the neural stimuli as $T_y$ and $T_u$ respectively, we could formulate the discretion of the time as $t_k = k T_y$ and $\Delta_i = i T_u$ for both signals.
+The above model could be rewritten as a discrete model. Denote the sampling rates of the observation and the neural stimuli as $T_y$ and $T_u$ respectively, we could formulate the discretion of the time as $t_k = k T_y$ and $\Delta_i = i T_u$ for both signals. When $T_u$ is small enough, we could approximate the discrete neural stimuli by $\mathbf{u} = \begin{bmatrix}
+  q_1 & q_2 & \cdots & q_N
+\end{bmatrix}^T$, where we use $q_i=0$ to represent no signal at the time step $\Delta_i$. Based on these configurations, we could derive the discrete model matrices by
+\begin{subequations} \label{fml:the:state-dis-mat}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \mathcal{A} &= \mathcal{L}^{-1}\{ s \mathbf{I} - \mathbf{A} \}(T_u), \\
+    \mathcal{B} &= \mathbf{A}^{-1}(\mathcal{A} - \mathbf{I})\mathbf{B}, \\
+    \mathcal{C} &= \mathbf{C},
+  \end{empheq}
+\end{subequations}
+where $\mathcal{L}^{-1}$ is the inverse Laplace transform.
+
+The discrete form of \eqref{fml:the:state-mul} is
+\begin{subequations} 
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \mathbf{x} [k+1] &= \mathcal{A} \mathbf{x} [k] + \mathcal{B} \mathbf{u} [k], \\
+    \mathbf{y} [k] &= \mathcal{C} \mathbf{x} [k],
+  \end{empheq}
+\end{subequations}
+
+In practice, we assume that $T_y = L T_u$, where $L$ is a integer. In this case, we could denote the state vector based on the sampling rate $T_y$ by $\mathbf{z}[k] = \mathbf{x}[Lk]$. Then we have $\mathcal{A}_d = \mathcal{A}^L$, $\mathcal{B}_d = \begin{bmatrix}
+  \mathcal{A}^{L-1} \mathcal{B} & \mathcal{A}^{L-2} \mathcal{B} & \cdots \mathcal{B}
+\end{bmatrix}$, $\mathbf{u}_d[k] = \begin{bmatrix}
+  \mathbf{u}[Lk] & \mathbf{u}[Lk+1] & \cdots \mathbf{u}[Lk+L-1]
+\end{bmatrix}^T$. By this way, the discrete model is finally formulated as
+\begin{subequations} \label{fml:the:state-dis}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{empheq}[left=\empheqlbrace]{align}
+    \mathbf{z} [k+1] &= \mathcal{A}_d \mathbf{z} [k] + \mathcal{B}_d \mathbf{u}_d [k], \\
+    \mathbf{y} [k] &= \mathcal{C} \mathbf{z} [k],
+  \end{empheq}
+\end{subequations}
+
+Since the system is casual, we have
+\begin{align} \label{fml:the:out-dis}
+  \mathbf{y}[k] = \mathcal{F}[k] \mathbf{z}_0 + \mathcal{D}[k] \mathbf{u},
+\end{align}
+where $\mathcal{F}[k] = \mathcal{C}\mathcal{A}_d^k$, $\mathcal{D}[k] = \mathcal{C} \begin{bmatrix}
+  \mathcal{A}_d^{k-1} \mathcal{B}_d & \mathcal{A}_d^{k-2} \mathcal{B}_d & \cdots \mathcal{B}_d & \mathbf{0}_{N-kL}
+\end{bmatrix}$ and \\$\mathbf{u} = \begin{bmatrix}
+  \mathbf{u}_d[0] & \mathbf{u}_d[1] & \cdots & \mathbf{u}_d[M-1]
+\end{bmatrix}^T$. The initial condition is configured as \\$\mathbf{z}_{0} = \mathbf{z}[0] = \begin{bmatrix}
+  0 & y_1(0) & 0 & \frac{y_2(0)}{\alpha_2} & \cdots & 0 & \frac{y_{\chi}(0)}{\alpha_{\chi}}
+\end{bmatrix}^T$.
+
+Let $\mathbf{y} = \begin{bmatrix}
+\mathbf{y}[1]^T & \mathbf{y}[2]^T & \cdots & \mathbf{y}[M]^T
+\end{bmatrix}^T$, $\mathcal{F}_{\boldsymbol{\theta}} = \begin{bmatrix}
+\mathcal{F}[0] & \mathcal{F}[1] & \cdots & \mathcal{F}[M-1]
+\end{bmatrix}^T$ and \\$\mathcal{D}_{\boldsymbol{\theta}} = \begin{bmatrix}
+\mathcal{D}[0] & \mathcal{D}[1] & \cdots & \mathcal{D}[M-1]
+\end{bmatrix}^T$, we can represent the whole multichannel phasic component by
+\begin{align} \label{fml:the:out-dis-all}
+  \mathbf{y} = \mathcal{F}_{\boldsymbol{\theta}} \mathbf{z}_{0} + \mathcal{D}_{\boldsymbol{\theta}} \mathbf{u},
+\end{align}
+where we use $\boldsymbol{\theta}$ to denote the learnable vector $\begin{bmatrix}
+  \tau_r & \tau_d & \alpha_1 & \alpha_2 & \cdots & \alpha_{\chi}
+\end{bmatrix}^T$.
+
+\subsection{Model the tonic component with spline functions}
+
+\subsection{Preprocess the data}
+
+Preprocessing aims at removing the outliers in the raw data. The whole process is shown in \autoref{alg:preprocessing}. We find the peaks of the differentiated raw data. The searching method is based on comparing the 2 values near the center point. The data patches with outliers are all replaced by their spline approximations. Most of the outliers could be removed by this way.
+\begin{algorithm}[tb]
+  \caption{The preprocessing applied to the raw data.}
+  \label{alg:preprocessing}
+  \begin{algorithmic}[1]
+    \REQUIRE The raw data $\{\mathbf{y}_{\mathrm{SC}_n}\}_{n=1}^\chi$ for $\chi$ channels.
+    \ENSURE The preprocessed data $\{\hat{\mathbf{y}}_{\mathrm{SC}_n}\}_{n=1}^\chi$ for $\chi$ channels.
+    % if-then-else
+    \FOR{$n$ from $1$ to $\chi$}
+      \STATE Find the local positive and negative peaks of the differential data $\dot{\mathbf{y}}_{\mathrm{SC}_n}$, where peaks means the data with a value larger than the around values by 0.1;
+      \FORALL{founded peaks}
+        \STATE Select 4 points near the peak, the range is limited in 100 points around the peak;
+        \STATE Use the spline interpolation of the selected 4 points to replace the 100 points;
+      \ENDFOR
+      \STATE Perform the 64 order low-pass FIR filter, the cut-off frequency is 3 Hz;
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Solve the deconvolution}
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}
