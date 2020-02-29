@@ -6,6 +6,11 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.4 @ 02/28/2020
+
+1. Finish the theory report.
+2. Add some modifications to the main file.
+
 ### 0.3 @ 02/14/2020
 
 1. Finish the data report.

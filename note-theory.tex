@@ -193,6 +193,24 @@ where we use $\boldsymbol{\theta}$ to denote the learnable vector $\begin{bmatri
 
 \subsection{Model the tonic component with spline functions}
 
+The tonic signal of the $n^{\mathrm{th}}$ channel could be viewed as the coefficients $q_n (t)$ convolved with the cubic B-spline function $\psi(t)$,
+\begin{align}
+  s_n(t) =  \psi(t) \otimes q_n (t).
+\end{align}
+
+The coefficients could be viewed as a time-series signal composed of several spikes, i.e. $q_n (t) = \sum_{j=1}^N q_j \delta(t - jT_s)$, where $T_s$ is the sampling rate of the coefficients. $T_s$ could be used to control the smoothness of the B-spline function. To ensure the smoothness, we usually use a longer period for $T_s$ like 6s. With these configurations, we could discretize the coefficients as $\mathbf{q} = \begin{bmatrix}
+  q_1 & q_2 & \cdots q_n
+\end{bmatrix}$. The convolution on $\psi(t)$ could be formulated by a Toeplitz matrix $\mathbf{C}$. The $k^{\mathrm{th}}$ row of the matrix could be formulated as
+\begin{align}
+  \mathbf{c}_k = \begin{bmatrix}
+    \psi(kT_y + T_s) & \psi(kT_y) & \psi(kT_y - T_s) & \cdots & \psi(T_u - T_s)
+  \end{bmatrix}.
+\end{align}
+With the discretion, we could formulate the tonic component as
+\begin{align}
+  \mathbf{s}_n = \mathbf{C} \mathbf{q}_n.
+\end{align}
+
 \subsection{Preprocess the data}
 
 Preprocessing aims at removing the outliers in the raw data. The whole process is shown in \autoref{alg:preprocessing}. We find the peaks of the differentiated raw data. The searching method is based on comparing the 2 values near the center point. The data patches with outliers are all replaced by their spline approximations. Most of the outliers could be removed by this way.
@@ -215,6 +233,75 @@ Preprocessing aims at removing the outliers in the raw data. The whole process i
 \end{algorithm}
 
 \subsection{Solve the deconvolution}
+
+After modeling the data by the aforementioned two methods, we could formulate the $n^{\mathrm{th}}$ channel of the SC data as follows,
+\begin{align}
+  \mathbf{y}_n = \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} + \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} + \mathbf{C} \mathbf{q}_n + \boldsymbol{\nu},
+\end{align}
+where $\boldsymbol{\theta}_n = \begin{bmatrix}
+\tau_r & \tau_d & \alpha_n
+\end{bmatrix}^T$ is the subset of the learnable vector $\boldsymbol{\theta}$, and $\mathbf{q}_n$ is the decomposition coefficients of the $n^{\mathrm{th}}$ tonic component. For the phasic decomposition, the coefficients, i.e. the neural stimuli $\mathbf{u}$ is shared, and the model parameters are not totally shared crossing the channels. For the tonic decomposition, the modeling function $\mathbf{C}$ is shared crossing the channels, while the coefficients $\mathbf{q}_n$ are different among different channels.
+
+The multichannel deconvolution with the tonic separation could be formulated by the following constrained joint optimization problem,
+\begin{subequations} \label{fml:the:optimization}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{align}
+    \arg\min\limits_{\substack{\boldsymbol{\theta},~\mathbf{u}, \\ \{\mathbf{q}_n\}_{n=1}^{\chi}, \\ \lambda,~\mu}} & \frac{1}{\chi} \left( \sum_{n=1}^{\chi} \mathcal{J}(\boldsymbol{\theta}_n,~\mathbf{u},~\mathbf{q}_n) + \mu \lVert \mathbf{q}_n \rVert_2^2 \right) + \lambda \lVert \mathbf{u} \rVert^p_p, \\
+    \mathrm{s.t.}~&\mathcal{J}(\boldsymbol{\theta}_n,~\mathbf{u},~\mathbf{q}_n) = \lVert \mathbf{y}_n - \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} - \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} - \mathbf{C} \mathbf{q}_n \rVert^2_2, \label{fml:loss-channel}\\
+    & \boldsymbol{\Gamma} \boldsymbol{\theta} \preccurlyeq \mathbf{b},~ \mathbf{u} \succcurlyeq \mathbf{0} \label{fml:cons-phasic}\\
+    & \forall~n,~\mathbf{C}\mathbf{q}_n \preccurlyeq \mathbf{y}_n, \label{fml:cons-tonic}
+  \end{align}
+\end{subequations}
+where \eqref{fml:loss-channel} represents the loss function for the $n^{\mathrm{th}}$ channel, \eqref{fml:cons-phasic} is the constraint of the phasic decomposition, and \eqref{fml:cons-tonic} is the constraint of the tonic extraction. In \eqref{fml:cons-phasic}, the Tikhonov matrix $\boldsymbol{\Gamma}$ and the boundary vector $\mathbf{b}$ are defined as
+\begin{subequations} \label{fml:the:constraint}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{align}
+    \boldsymbol{\Gamma} &= \begin{bmatrix}
+      1 & -1 & 0 & 0 & \cdots & 0 & 0 \\
+      0 & 0 & 1 & -1 & \cdots & 0 & 0 \\
+      \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+      0 & 0 & 0 & 0 & \cdots & 1 & -1
+    \end{bmatrix}, \\
+    \mathbf{b} &= \begin{bmatrix}
+      1.4 & -0.1 & 6.0 & -1.5 & 100.0 & -0.01 & \cdots & 100.0 & -0.01
+    \end{bmatrix}^T
+  \end{align}
+\end{subequations}
+
+Conventionally, it is difficult to decide the proper the regularization coefficients $\lambda,~\mu$. In our work, we take the optimization of the coefficients into the consideration. The optimization is based on Focal Underdetermined System Solver (FOCUSS+) algorithm~\cite{murray2005visual}, while the estimation of the tunable regularization coefficients is based on  generalized cross-validation (GCV) method~\cite{zdunek2008improved}. 
+
+The whole algorithm for the optimization is discussed in \autoref{alg:deconvolution}. The optimization could be divided into an outer loop and an inner loop. In the outer loop, we solve the modeling parameters $\boldsymbol{\theta}$. The deconvolution and with the tonic extraction is performed in the inner loop.
+\begin{algorithm}[!tb]
+  \caption{The preprocessing applied to the raw data.}
+  \label{alg:deconvolution}
+  \begin{algorithmic}[1]
+    \REQUIRE The preprocessed multichannel data $\{\hat{\mathbf{y}}_{\mathrm{SC}_n}\}_{n=1}^\chi$, the decomposition coefficients $\mathbf{u}, \{\mathbf{q}_{n}\}_{n=1}^\chi$, and the initialized parameters $\boldsymbol{\theta}$, where $\tau_d \sim U(0.10,~1.4)$, $\tau_r \sim U(1.5,~6.0)$, $\alpha_n \sim U(0.01,~1.0)$, $\mathbf{u} \sim 0$, and $\mathbf{q}_n \sim \mathcal{N}(0.1, 0.02)$.
+    % if-then-else
+    \FOR {$j$ from $1$ to $30$}
+      \STATE Let $\boldsymbol{\theta},~\{\mathbf{q}_{n}\}$ fixed, use FOCUSS+ to solve $\tilde{\mathbf{u}}^{(j)}$. Set $\mathbf{u} = \tilde{\mathbf{u}}^{(j)}$;
+      \STATE Let $\mathbf{u},~\{\mathbf{q}_{n}\}$ fixed, solve $\tilde{\boldsymbol{\theta}}^{(j)}$ by the interior method. Set $\boldsymbol{\theta} = \tilde{\boldsymbol{\theta}}^{(j)}$;
+      \STATE Let $\boldsymbol{\theta},~\mathbf{u}$ fixed, use FOCUSS+ to solve $\{\tilde{\mathbf{q}}_{n}\}^{(j)}$. Set $\{\mathbf{q}_{n}\} = \{\tilde{\mathbf{q}}_{n}\}^{(j)}$;
+    \ENDFOR
+    \STATE Initialize $\hat{\boldsymbol{\theta}}^{(0)}=\boldsymbol{\theta}$, $\hat{\mathbf{u}}^{(0)}=\mathbf{u}$, $\{\hat{\mathbf{q}}_{n}\}^{(0)}=\{\mathbf{q}_{n}\}$;
+    \FOR{$i$ from $0$ until converge}
+      \STATE Let $\boldsymbol{\theta},~\{\mathbf{q}_{n}\}$ fixed, solve $\hat{\mathbf{u}}^{(j)}$ by the following steps;
+      \STATE Let $\hat{\lambda}^{(i)(0)} = 2 \times 10^{-3}$,
+      \FOR{$m$ from $1$ until converge}
+        \STATE Let $\lambda = \hat{\lambda}^{(i)(m-1)}$, $\boldsymbol{\theta},~\{\mathbf{q}_{n}\}$ fixed, use FOCUSS+ to solve $\hat{\mathbf{u}}^{(i)(m)}$. Set $\mathbf{u} = \hat{\mathbf{u}}^{(i)(m)}$;
+        \STATE Let $\mathbf{u},~\boldsymbol{\theta}~\{\mathbf{q}_{n}\}$ fixed, use FOCUSS+ to solve $\hat{\lambda}^{(i)(m)}$. Set $\lambda = \hat{\lambda}^{(i)(m)}$;
+      \ENDFOR
+      \STATE Set $\hat{\mathbf{u}}^{(i)} = \hat{\mathbf{u}}^{(i)(m)}$.
+      \STATE Let $\hat{\mu}^{(i)(0)} = 2 \times 10^{-3}$,
+      \FOR{$m$ from $1$ until converge}
+        \STATE Let $\mu = \hat{\mu}^{(i)(m-1)}$, $\boldsymbol{\theta},\mathbf{u}$ fixed, use FOCUSS+ to solve $\{\hat{\mathbf{q}}_{n}\}^{(i)(m)}$. Set $\{\mathbf{q}_{n}\} = \{\hat{\mathbf{q}}_{n}\}^{(i)(m)}$;
+        \STATE Let $\mathbf{u},~\boldsymbol{\theta}~\{\mathbf{q}_{n}\}$ fixed, use FOCUSS+ to solve $\hat{\mu}^{(i)(m)}$. Set $\mu = \hat{\mu}^{(i)(m)}$;
+      \ENDFOR
+      \STATE Set $\{\hat{\mathbf{q}}_{n}\}^{(i)} =  \{\hat{\mathbf{q}}_{n}\}^{(i)(m)}$.
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}
