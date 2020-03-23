@@ -4,8 +4,6 @@
 \usepackage[letterpaper,total={6in,8in}]{geometry}
 \usepackage[colorlinks]{hyperref}
 
-\usepackage{color}
-
 \ifpdf
   \RequirePackage{graphicx}
   \RequirePackage{epstopdf}
@@ -50,7 +48,7 @@ According to the presumption in \cite{alexander2005separating,society2012publica
 \begin{align}
   p_n(t) = \alpha_n \zeta_n (t),
 \end{align}
-{\color{red} where $\alpha_n$ denotes the attenuation caused by the conduction of the EDA,} $\zeta_n(t)$ is a internal variable representing the conducted signal from the same ANS. Mathematically, $\zeta_n(t)$ is modeled by a smoothing filter applied to the neural stimuli $u(t-\beta_n)$. The conduction delay $\beta_n$ shows that the same stimuli would be detected at different moments. Generally, the neural stimuli could be defined as a time-series spike signal, i.e. $u(t) = \sum_{i=1}^N q_i \delta(t - \Delta_i)$. Given $u(t)$, \textit{Alexander et al.}~\cite{alexander2005separating} provides a second-order ordinary differential equation to describe $\zeta_n(t)$,
+where $\alpha_n$ denotes the attenuation caused by the the different number and sizes of sweat glands in different location. $\zeta_n(t)$ is an internal variable which is modeled by a smoothing filter applied to the neural stimuli $u(t-\beta_n)$. The conduction delay $\beta_n$ shows that the same stimuli would be detected at different moments. Generally, the neural stimuli could be defined as a time-series spike signal, i.e. $u(t) = \sum_{i=1}^N q_i \delta(t - \Delta_i)$, where $q_i$ is the spike signal in time interval i, and $\Delta_i$ is the time for ith time interval. Given $u(t)$, \textit{Alexander et al.}~\cite{alexander2005separating} provides a second-order ordinary differential equation to describe $\zeta_n(t)$,
 \begin{align} \label{fml:the:ode}
   \tau_r \tau_d \frac{\od^2 \zeta_n(t)}{\od t^2} + (\tau_r + \tau_d) \frac{\od \zeta_n(t)}{\od t} + \zeta_n(t) = u(t - \beta_n).
 \end{align}
@@ -65,6 +63,8 @@ The difference between different channels in \eqref{fml:the:ode} is only the tim
     y_n (t) &= \alpha_n x^{(n)}_2(t).
   \end{empheq}
 \end{subequations}
+{\color{red}  It would be nice if there are more physiological explanation for Eq. 4.}
+
 where $x^{(n)}_1(t)$ is another internal state. To solve the coefficients $a, b, c, d$, we eliminate $x^{(n)}_1(t)$ in \eqref{fml:the:state-raw-2},
 \begin{equation} \label{fml:the:ode-from-state}
   \begin{aligned}
@@ -142,6 +142,7 @@ The above model could be rewritten as a discrete model. Denote the sampling rate
   \end{empheq}
 \end{subequations}
 where $\mathcal{L}^{-1}$ is the inverse Laplace transform.
+{\color{red}	Please check Eq. 9. The equation does not look right.}
 
 The discrete form of \eqref{fml:the:state-mul} is
 \begin{subequations} 
@@ -153,7 +154,7 @@ The discrete form of \eqref{fml:the:state-mul} is
   \end{empheq}
 \end{subequations}
 
-In practice, we assume that $T_y = L T_u$, where $L$ is a integer. In this case, we could denote the state vector based on the sampling rate $T_y$ by $\mathbf{z}[k] = \mathbf{x}[Lk]$. Then we have $\mathcal{A}_d = \mathcal{A}^L$, $\mathcal{B}_d = \begin{bmatrix}
+In practice, we assume that $T_y = L T_u$, where $L$ is an integer. In this case, we could denote the state vector based on the sampling rate $T_y$ by $\mathbf{z}[k] = \mathbf{x}[Lk]$. Then we have $\mathcal{A}_d = \mathcal{A}^L$, $\mathcal{B}_d = \begin{bmatrix}
   \mathcal{A}^{L-1} \mathcal{B} & \mathcal{A}^{L-2} \mathcal{B} & \cdots \mathcal{B}
 \end{bmatrix}$, $\mathbf{u}_d[k] = \begin{bmatrix}
   \mathbf{u}[Lk] & \mathbf{u}[Lk+1] & \cdots \mathbf{u}[Lk+L-1]
@@ -202,7 +203,9 @@ The tonic signal of the $n^{\mathrm{th}}$ channel could be viewed as the coeffic
 
 The coefficients could be viewed as a time-series signal composed of several spikes, i.e. $q_n (t) = \sum_{j=1}^N q_j \delta(t - jT_s)$, where $T_s$ is the sampling rate of the coefficients. $T_s$ could be used to control the smoothness of the B-spline function. To ensure the smoothness, we usually use a longer period for $T_s$ like 6s. With these configurations, we could discretize the coefficients as $\mathbf{q} = \begin{bmatrix}
   q_1 & q_2 & \cdots q_n
-\end{bmatrix}$. The convolution on $\psi(t)$ could be formulated by a Toeplitz matrix $\mathbf{C}$. The $k^{\mathrm{th}}$ row of the matrix could be formulated as
+\end{bmatrix}$.
+{\color{red}   $q_n(t)$ has also been used for the coefficient signal for nth channel.}
+The convolution on $\psi(t)$ could be formulated by a Toeplitz matrix $\mathbf{C}$. The $k^{\mathrm{th}}$ row of the matrix could be formulated as
 \begin{align}
   \mathbf{c}_k = \begin{bmatrix}
     \psi(kT_y + T_s) & \psi(kT_y) & \psi(kT_y - T_s) & \cdots & \psi(T_u - T_s)
@@ -212,6 +215,7 @@ With the discretion, we could formulate the tonic component as
 \begin{align}
   \mathbf{s}_n = \mathbf{C} \mathbf{q}_n.
 \end{align}
+{\color{red} we should change $q_n$}
 
 \subsection{Preprocess the data}
 
@@ -238,18 +242,18 @@ Preprocessing aims at removing the outliers in the raw data. The whole process i
 
 After modeling the data by the aforementioned two methods, we could formulate the $n^{\mathrm{th}}$ channel of the SC data as follows,
 \begin{align}
-  \mathbf{y}_n = \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} + \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} + \mathbf{C} \mathbf{q}_n + \boldsymbol{\nu},
+  \mathbf{y}_n = \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} + \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} + \mathbf{C} \mathbf{q}_n + \boldsymbol{\nu}_n,
 \end{align}
 where $\boldsymbol{\theta}_n = \begin{bmatrix}
 \tau_r & \tau_d & \alpha_n
-\end{bmatrix}^T$ is the subset of the learnable vector $\boldsymbol{\theta}$, and $\mathbf{q}_n$ is the decomposition coefficients of the $n^{\mathrm{th}}$ tonic component. For the phasic decomposition, the coefficients, i.e. the neural stimuli $\mathbf{u}$ is shared, and the model parameters are not totally shared crossing the channels. For the tonic decomposition, the modeling function $\mathbf{C}$ is shared crossing the channels, while the coefficients $\mathbf{q}_n$ are different among different channels.
+\end{bmatrix}^T$ is the subset of the learnable vector $\boldsymbol{\theta}$, $\mathbf{q}_n$ is the decomposition coefficients of the $n^{\mathrm{th}}$ tonic component and $\boldsymbol{\nu}_n$ is the noise vector for $n^{th}$ channel. {\color{red} (need more exact define of $\boldsymbol{\nu}$) }. For the phasic decomposition, the coefficients, i.e. the neural stimuli $\mathbf{u}$ is shared, and the model parameters are not totally shared crossing the channels. For the tonic decomposition, the modeling function $\mathbf{C}$ is shared crossing the channels, while the coefficients $\mathbf{q}_n$ are different among different channels.
 
 The multichannel deconvolution with the tonic separation could be formulated by the following constrained joint optimization problem,
 \begin{subequations} \label{fml:the:optimization}
   \renewcommand{\theequation}
   {\theparentequation-\arabic{equation}}
   \begin{align}
-    \arg\min\limits_{\substack{\boldsymbol{\theta},~\mathbf{u}, \\ \{\mathbf{q}_n\}_{n=1}^{\chi}, \\ \lambda,~\mu}} & \frac{1}{\chi} \left( \sum_{n=1}^{\chi} \mathcal{J}(\boldsymbol{\theta}_n,~\mathbf{u},~\mathbf{q}_n) + \mu \lVert \mathbf{q}_n \rVert_2^2 \right) + \lambda \lVert \mathbf{u} \rVert^p_p, \\
+    \arg\min\limits_{\substack{\boldsymbol{\theta},~\mathbf{u}, \\ \{\mathbf{q}_n\}_{n=1}^{\chi}, \\ \lambda,~\mu_n}} & \frac{1}{\chi} \left( \sum_{n=1}^{\chi} \mathcal{J}(\boldsymbol{\theta}_n,~\mathbf{u},~\mathbf{q}_n) + \mu_n \lVert \mathbf{q}_n \rVert_2^2 \right) + \lambda \lVert \mathbf{u} \rVert^p_p, \\
     \mathrm{s.t.}~&\mathcal{J}(\boldsymbol{\theta}_n,~\mathbf{u},~\mathbf{q}_n) = \lVert \mathbf{y}_n - \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} - \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} - \mathbf{C} \mathbf{q}_n \rVert^2_2, \label{fml:loss-channel}\\
     & \boldsymbol{\Gamma} \boldsymbol{\theta} \preccurlyeq \mathbf{b},~ \mathbf{u} \succcurlyeq \mathbf{0} \label{fml:cons-phasic}\\
     & \forall~n,~\mathbf{C}\mathbf{q}_n \preccurlyeq \mathbf{y}_n, \label{fml:cons-tonic}
@@ -272,7 +276,7 @@ where \eqref{fml:loss-channel} represents the loss function for the $n^{\mathrm{
   \end{align}
 \end{subequations}
 
-Conventionally, it is difficult to decide the proper the regularization coefficients $\lambda,~\mu$. In our work, we take the optimization of the coefficients into the consideration. The optimization is based on Focal Underdetermined System Solver (FOCUSS+) algorithm~\cite{murray2005visual}, while the estimation of the tunable regularization coefficients is based on  generalized cross-validation (GCV) method~\cite{zdunek2008improved}. 
+Conventionally, it is difficult to decide the proper the regularization coefficients $\lambda,~\mu_n$. In our work, we take the optimization of the coefficients into the consideration. The optimization is based on Focal Underdetermined System Solver (FOCUSS+) algorithm~\cite{murray2005visual}, while the estimation of the tunable regularization coefficients is based on  generalized cross-validation (GCV) method~\cite{zdunek2008improved}. 
 
 The whole algorithm for the optimization is discussed in \autoref{alg:deconvolution}. The optimization could be divided into an outer loop and an inner loop. In the outer loop, we solve the modeling parameters $\boldsymbol{\theta}$. The deconvolution and with the tonic extraction is performed in the inner loop.
 \begin{algorithm}[!tb]
