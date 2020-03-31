@@ -4,78 +4,112 @@ function [data] = concurrent_coordinate_descent1_n_channel(data)
 
 %y:                     the matrix containing all the channel data (delay adjusted). Each column corresponds to each channel
 %sigma:                 array of all the standard deviation of the noise levels
-%ub:                    upper bound for rise time, decay time and the attenuation term 
+%ub:                    upper bound for rise time, decay time and the attenuation term
 %lb:                    lower bound for "     "     "
-%Fsu:                   desired sampling frequency of the neural stimuli 
+%Fsu:                   desired sampling frequency of the neural stimuli
 %Fsy:                   sampling frequency of the skin conductance observations
 %minimum_peak_distance: desired minimum distance between two consecutive impulses
 
 %% approximate number of peaks
-    y   = data.y;
-    Fsy = data.Fsy;
-    Fsu = data.Fsu;
-    ub  = data.ub;
-    lb  = data.lb;
+y   = data.y;
+Fsy = data.Fsy;
+Fsu = data.Fsu;
+Fsq = data.Fsq;
+ub  = data.ub;
+lb  = data.lb;
+mu_max = 0.01;
 
-    [~,locs]=findpeaks(y(:,1), 'MinPeakDistance', data.minimum_peak_distance * data.Fsy);
-    ubn=length(locs)+20;
+[~,locs]=findpeaks(y(:,1), 'MinPeakDistance', data.minimum_peak_distance * data.Fsy);
+ubn=length(locs)+20;
 
 %% random initialization
-    tau_j_1(1) = lb(1) + (ub(1)-lb(1))*rand(1,1);   tau_j_1(2) = lb(2) + (ub(2)-lb(2))*rand(1,1);
+tau_j_1 = [lb(1) + (ub(1)-lb(1))*rand(1,1), lb(2) + (ub(2)-lb(2))*rand(1,1)];
 
-    data.number_of_channels = min(size(data.y)); %assuming data length is greater than the number of channels
+data.number_of_channels = min(size(data.y)); %assuming data length is greater than the number of channels
 
-    for i = 1:data.number_of_channels-1
-        tau_j_1(2+i) = lb(3) + (ub(3)-lb(3))*rand(1,1);
-    end
+for i = 1:data.number_of_channels-1
+    tau_j_1(2+i) = lb(3) + (ub(3)-lb(3))*rand(1,1);
+end
 
-    Nu = length(y(:,1)) * Fsu/Fsy; 
+Ny = size(y,1);
+Nu = Ny * Fsu/Fsy;
 
-    Tsy = 1/Fsy; %min
-    Tsu = 1/Fsu; %min
-    ty = 0:Tsy:(y(:,1)-1)*Tsy;
-    tu = 0:Tsu:(Nu-1)*Tsu;
+Tsy = 1/Fsy; %min
+Tsu = 1/Fsu; %min
+ty = 0:Tsy:(y(:,1)-1)*Tsy;
+tu = 0:Tsu:(Nu-1)*Tsu;
 
 %  define blank arrays
 A = [];    B = [];    y_ = [];
+C = create_spline_mat(Ny, 1/Fsq, 6.666);
+mu = 2e-3 * ones(data.number_of_channels, 1);
+q = zeros(size(C,2), data.number_of_channels);
+y_tonic = zeros(size(y));
+y_sort = sort(y(:,1),'descend');
+uj_1 = 0.1*mean(y_sort(5:15),'all')*ones(Nu,1);
 %% initialization
+% Solve the tonic component, mu is fixed as 2e-3.
+for c = 1:data.number_of_channels
+    y_get_tonic = max(y(:,c), 0.0);
+    q_c = quadprog_gcv(y_get_tonic, C, mu(c), mu_max);
+    q(:,c) = q_c;
+    y_tonic(:, c) = C * q_c;
+end
 for j=1:30
-%  fprintf('parallel loop %d: j = %d', parloop,j);
+    %  fprintf('parallel loop %d: j = %d', parloop,j);
     [A_, B_] = create_A_B_matrix_ss_multires(tau_j_1(1:2), Nu, Fsu, Fsy);
-%  define dummy arrays for calculation
+    %  define dummy arrays for calculation
     A = [];    B = [];    y_ = [];
     alpha = tau_j_1(3:end);
     for  k = 1:data.number_of_channels
-        y_ = [y_; y(:,k) - A_ * [0; y(1,k)]];
+        y_ = [y_; y(:,k) - y_tonic(:, k) - A_ * [0; y(1,k)-y_tonic(1,k)]];
         A = [A; A_];
         if( k == 1)
-            B = [B; 1*B_];
+            B = [B; 1.0*B_];
         else
             B = [B; alpha(k-1)*B_];
         end
     end
-%  initialize u with all ones
-    uj_1 = ones(Nu,1);
-
-%  run heuristic IRLS algorithm for sparse recovery (CS regime)
+    
+    %  run heuristic IRLS algorithm for sparse recovery (CS regime)
     [ uj ] = focuss_modified2(uj_1, y_, B, ubn, true, 15, 0.5, 1e-4, 1e-5 , round(data.minimum_peak_distance * Fsu));
     
+    uj_1 = uj;
     data.u = uj;
+    data.y_cur_tonic = y_tonic;
     tau_j = SystemID_interior_point1(tau_j_1, data);
     tau_j_1 = tau_j;
+
 end
 
 %% coordinated descent
 count = 0;
-maxiter = 500;
+maxiter = 50;
 J = zeros(maxiter,1);
+%  initialize u with all ones
+y_tonic_ini = y_tonic;
 while(1)
+    % disp(['iter: ', num2str(count+1)]);
+    % Solve the tonic component, mu is solved by GCV-quadprog.
     [A_, B_] = create_A_B_matrix_ss_multires(tau_j_1(1:2), Nu, Fsu, Fsy);
-%     define dummy arrays for calculation
+    for k = 1:data.number_of_channels
+        if(k==1)
+            alpha = 1;
+        else
+            alpha = tau_j_1(2+k-1);
+        end
+        y_rec1 = A_*[0;y(1,k)-y_tonic(1,k)]+alpha*B_*uj;
+        y_get_tonic = max(y(:,k) - y_rec1, y_tonic_ini(:,k));
+        [q_c, mu_c] = quadprog_gcv(y_get_tonic, C, mu(k), mu_max);
+        q(:, k) = q_c;
+        mu(k) = mu_c;
+        y_tonic(:, k) = C * q_c;
+    end
+    %     define dummy arrays for calculation
     A = [];    B = [];    y_ = [];
     alpha = tau_j_1(3:end);
-    for  k = 1:data.number_of_channels  
-        y_ = [y_; y(:,k) - A_ * [0; y(1,k)]];
+    for  k = 1:data.number_of_channels
+        y_ = [y_; y(:,k) - y_tonic(:, k) - A_ * [0; y(1,k)-y_tonic(1,k)]];
         A = [A; A_];
         if( k == 1 )
             B = [B; B_];
@@ -83,10 +117,10 @@ while(1)
             B = [B; alpha(k-1)*B_];
         end
     end
-   
-    uj_1 = uj;
     
     [uj, J(count+1), Reg] = focussreg3_modified(uj_1, y_, B, 10);
+    data.u = uj;
+    data.y_cur_tonic = y_tonic;
     
     tau_j = SystemID_interior_point1(tau_j_1, data);
     
@@ -94,25 +128,26 @@ while(1)
     
     tau_j_1 = tau_j;
     alpha_conv_flag = 1;
-%     fprintf('count = %d---->   ',count);
-%     fprintf('tau1 = %d,   tau2 = %d,   tau3 = %d,   tau4 = %d\n', tau_j(1),tau_j(2),tau_j(3),tau_j(4));
+    %     fprintf('count = %d---->   ',count);
+    %     fprintf('tau1 = %d,   tau2 = %d,   tau3 = %d,   tau4 = %d\n', tau_j(1),tau_j(2),tau_j(3),tau_j(4));
     if(round((uj)*5e1)/5e1 == round((uj_1)*5e1)/5e1)
-                disp('convergence achieved for u');
-                 if(round(tau_j(1)*1e2)/1e2 == round(tau_j_1(1)*1e2)/1e2 && round(tau_j(2)*1e2)/1e2 == round(tau_j_1(2)*1e2)/1e2 && round(tau_j(2)*1e2)/1e2 == round(tau_j_1(2)*1e2)/1e2)
-                     disp('convergence achived for tau1 and tau2');
-                     
-                     %check convergence for alpha
-                     for i = 1:data.number_of_channels-1
-                        alpha_conv_flag = (alpha_conv_flag && (round(tau_j(i+2)*1e2)/1e2 == round(tau_j_1(i+2)*1e2)/1e2));
-                     end
-                     if(alpha_conv_flag == 1)
-                        disp('convergence achived for alpha(s) achived');
-                        convergenceFlag = 1;
-                        break;
-                     end
-                 end
+        disp('convergence achieved for u');
+        if(round(tau_j(1)*1e2)/1e2 == round(tau_j_1(1)*1e2)/1e2 && round(tau_j(2)*1e2)/1e2 == round(tau_j_1(2)*1e2)/1e2 && round(tau_j(2)*1e2)/1e2 == round(tau_j_1(2)*1e2)/1e2)
+            disp('convergence achieved for tau1 and tau2');
+            
+            %check convergence for alpha
+            for i = 1:data.number_of_channels-1
+                alpha_conv_flag = (alpha_conv_flag && (round(tau_j(i+2)*1e2)/1e2 == round(tau_j_1(i+2)*1e2)/1e2));
+            end
+            if(alpha_conv_flag == 1)
+                disp('convergence achieved for alpha(s) achieved');
+                convergenceFlag = 1;
+                break;
+            end
+        end
     end
     count = count+1;
+    uj_1 = uj;
     if(count>maxiter)
         convergenceFlag = 0;
         break;
@@ -122,72 +157,79 @@ end
 
 %% reconstruct the waves and save the results in same structure
 
-    tau_j = tau_j(:)';
-    [A_, B_] = create_A_B_matrix_ss_multires(tau_j(1:2), Nu, data.Fsu, data.Fsy);
-    
-    for k = 1:data.number_of_channels
-        if(k==1)
-            alpha = 1;
-        else
-            alpha = tau_j(2+k-1);
-        end
-        y_rec1 = A_*[0;y(1,k)]+alpha*B_*uj;
-        y_rec(:,k) = y_rec1;
-    end
+tau_j = tau_j(:)';
+[A_, B_] = create_A_B_matrix_ss_multires(tau_j(1:2), Nu, data.Fsu, data.Fsy);
+y_rec_phasic = zeros(size(y));
+y_rec_tonic = zeros(size(y));
 
-    data.lambda = Reg;
-    data.y_rec = y_rec;
-    data.tau_j = tau_j;
-    data.uj = uj;
-    data.convergenceFlag = convergenceFlag;
-    
-    data.cost1 = 0;
-    data.cost2 = 0;
-    data.R_2 = [];
-    for i = 1:data.number_of_channels
-        data.cost1 = data.cost1 + 0.5*norm(y(:,i)-y_rec(:,i),2)^2/data.sigma(i);
-        data.R_2(i) = 1 - var(y(:,i)-y_rec(:,i))/var(y(:,i));
+for k = 1:data.number_of_channels
+    y_rec_tonic(:,k) = C * q(:,k);
+    if(k==1)
+        alpha = 1;
+    else
+        alpha = tau_j(2+k-1);
     end
-    data.cost2 = data.cost1 + data.lambda * norm(data.uj, 1);
-    
+    y_rec1 = A_*[0;y(1,k)-y_rec_tonic(1,k)]+alpha*B_*uj;
+    y_rec_phasic(:,k) = y_rec1;
+end
+y_rec = y_rec_phasic + y_rec_tonic;
+
+data.lambda = Reg;
+data.mu = mu;
+data.y_rec_phasic = y_rec_phasic;
+data.y_rec_tonic = y_rec_tonic;
+data.y_rec = y_rec;
+data.tau_j = tau_j;
+data.uj = uj;
+data.convergenceFlag = convergenceFlag;
+
+data.cost1 = 0;
+data.cost2 = 0;
+data.R_2 = [];
+for i = 1:data.number_of_channels
+    data.cost1 = data.cost1 + 0.5*norm(y(:,i)-y_rec(:,i),2)^2;
+    data.R_2(i) = 1 - var(y(:,i)-y_rec(:,i))/var(y(:,i));
+end
+data.cost2 = data.cost1 + data.lambda * norm(data.uj, 1);
+
 end
 
 %% system identification
 function tau_est = SystemID_interior_point1(tau_prev, data)
 %y1, y2, sigma1, sigma2, ty, u, tu, ub, lb
-    lb = data.lb; ub = data.ub;
-    lb = lb(:); ub = ub(:); 
-    
-    for i = 1:data.number_of_channels-2
-        lb = [lb; lb(3)]; ub = [ub; ub(3)];
-    end
-    
-    fun = @(x)cost_function_interior_point(x,data);
-    %x0 = (ub+lb)/2;  
-    x0 = tau_prev(:);
-    A = []; b = [];  Aeq = [];  beq = [];
-    nonlcon = [];
-    options = optimoptions('fmincon','Algorithm','interior-point','Display','off'); % run interior-point algorithm
-    tau_est = fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonlcon,options);
-    tau_est = tau_est(:)';
+lb = data.lb; ub = data.ub;
+lb = lb(:); ub = ub(:);
+
+for i = 1:data.number_of_channels-2
+    lb = [lb; lb(3)]; ub = [ub; ub(3)];
+end
+
+fun = @(x)cost_function_interior_point(x,data);
+%x0 = (ub+lb)/2;
+x0 = tau_prev(:);
+A = []; b = [];  Aeq = [];  beq = [];
+nonlcon = [];
+options = optimoptions('fmincon','Algorithm','interior-point','Display','off'); % run interior-point algorithm
+tau_est = fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+tau_est = tau_est(:)';
 end
 
 %% cost function
 function J = cost_function_interior_point(tau, data)
 
-    tau = tau(:)';
-    Nu = length(data.y(:,1)) * data.Fsu/data.Fsy; 
-    [A1, B1] = create_A_B_matrix_ss_multires(tau(1:2), Nu, data.Fsu, data.Fsy);
-    
-    J = 0;
-    for k = 1:data.number_of_channels
-        if(k==1)
-            alpha = 1;
-        else
-            alpha = tau(2+k-1);
-        end
-        J = J + 0.5*norm(data.y(:,k)-A1*[0;data.y(1,k)]-alpha*B1*data.u,2)^2/data.sigma(k)^2;
+tau = tau(:)';
+Nu = length(data.y(:,1)) * data.Fsu/data.Fsy;
+[A1, B1] = create_A_B_matrix_ss_multires(tau(1:2), Nu, data.Fsu, data.Fsy);
+
+J = 0;
+for k = 1:data.number_of_channels
+    if(k==1)
+        alpha = 1;
+    else
+        alpha = tau(2+k-1);
     end
+    J = J + 0.5*norm(data.y(:,k)-data.y_cur_tonic(:,k)-A1*[0;data.y(1,k)]-alpha*B1*data.u,2)^2;
+end
 
 end
 
@@ -199,37 +241,37 @@ function [A, B] = create_A_B_matrix_ss_multires(tau, Nu, Fsu, Fsy)
 % Fsu
 % Fsy
 
-    Fs = Fsu;
-    Ts = 1/Fs;
-    A = [-1/tau(1) 0; +1/tau(2) -1/tau(2)];      B = [1/tau(1) ;0];  C = [0 1];  D = 0;
+Fs = Fsu;
+Ts = 1/Fs;
+A = [-1/tau(1) 0; +1/tau(2) -1/tau(2)];      B = [1/tau(1) ;0];  C = [0 1];  D = 0;
 
-    sys = ss(A,B,C,D); sysd = c2d(sys, Ts);
-    Ad = sysd.A; Bd = sysd.B; Cd = sysd.C; Dd = sysd.D; 
- 
-    y0 = 0.5; r0 = 0; x = [];
-    x0 = [r0; y0];
-    x(:,1) = x0;
-    y(1) = Cd * x(:,1);
+sys = ss(A,B,C,D); sysd = c2d(sys, Ts);
+Ad = sysd.A; Bd = sysd.B; Cd = sysd.C; Dd = sysd.D;
 
-    D1 = zeros(Nu,Nu);
+y0 = 0.5; r0 = 0; x = [];
+x0 = [r0; y0];
+x(:,1) = x0;
+y(1) = Cd * x(:,1);
 
-    temp = 1;
-    for i=1:Nu
-     F1(i,:) = Cd * Ad^(i-1);
-    end
-    temp = 1;
-    for i=1:Nu
-     D_(Nu-i+1) = Cd * temp * Bd;
-     temp = temp * Ad;
-    end
-    for i=1:Nu
-     D1(Nu-i+1,:) =  [D_(i+1:end) zeros(1,i)];
-    end
+D1 = zeros(Nu,Nu);
 
-    downsampling_factor = Fsu/Fsy;
+temp = 1;
+for i=1:Nu
+    F1(i,:) = Cd * Ad^(i-1);
+end
+temp = 1;
+for i=1:Nu
+    D_(Nu-i+1) = Cd * temp * Bd;
+    temp = temp * Ad;
+end
+for i=1:Nu
+    D1(Nu-i+1,:) =  [D_(i+1:end) zeros(1,i)];
+end
 
-    A = downsample(F1,downsampling_factor);
-    B = downsample(D1,downsampling_factor);
+downsampling_factor = Fsu/Fsy;
+
+A = downsample(F1,downsampling_factor);
+B = downsample(D1,downsampling_factor);
 end
 
 

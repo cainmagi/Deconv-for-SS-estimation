@@ -4,6 +4,28 @@ The multi-channel deconvolution project for the ECE 6397: State space estimation
 
 Now the project is being processed. We will update more informations in the future.
 
+To get the results, please use the following script:
+
+```matlab
+Exp_on_multi_deconv_with_tonic_ext
+```
+
+To display the solved results, please use the following script:
+
+```matlab
+Exp_show_fin_results
+```
+
+We finish our works in these scripts:
+
+* `concurrent_coordinate_descent1_n_channel`: add the tonic extraction into the script.
+* `create_spline_mat`: this script is extracted from cvxEDA. We use it to generate the spline matrix.
+* `quadprog_gcv`: this script is used to solve the tonic component.
+* `show_arranged_dataset`: this script is used to show the pre-processed results.
+* `show_raw_dataset`: this script is used to show the raw data.
+* `show_final_predictions`: this script is used to show the final results.
+* `tight_layout`: this script is used to format any displayed figure with a good frame size and a good font size.
+
 ## Matlab project for reference
 
 This project is our baseline reference. The work is done by *Amin, MD Rafiul*, and *Rose T. Faghih*. The original readme text is as bellow:
@@ -60,6 +82,11 @@ The data file name is composed of:
 Data are stored as .mat files for use with MATLAB (The MathWorks Inc., Natick, USA) in a format readable by the PsPM toolbox (pspm.sourceforge.net). All matlab files are saved in MATLAB 8.6 (R2015b) format.
 
 ## Update report
+
+### 0.5 @ 03/30/2020
+
+1. Finish the script for multi-channel deconvolution with tonic extraction.
+2. Finish the script for displaying the results.
 
 ### 0.3 @ 02/14/2020
 
