@@ -6,6 +6,10 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.7 @ 03/30/2020
+
+1. Finish the result report, and integrate all reports together.
+
 ### 0.4 @ 02/28/2020
 
 1. Finish the theory report.
