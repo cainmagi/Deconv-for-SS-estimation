@@ -131,7 +131,7 @@ same stimuli would be detected at different times at different locations. We fol
 \end{align}
 where $\tau_r$ and $\tau_d$ represent the rise and decay times respectively.
 
-The difference between different channels in \eqref{fml:the:ode} is only the time delay. In other words, the solutions of $\zeta_n(t)$ for different $n$ are the same except the time delay. According to \eqref{fml:the:ode}, \textit{Faghih et al.}~\cite{faghih2015characterization} propose a state space model. Incorporating the time delay into the internal signal $\zeta_n(t)$, we define an internal state $x^{(n)}_2 (t)$ as $\zeta_n(t + \beta_n)$. The state-space model could be formulated as as follows,
+The difference between different channels in \eqref{fml:the:ode} is only the time delay. In other words, the solutions of $\zeta_n(t)$ for different $n$ are the same except the time delay. According to \eqref{fml:the:ode}, \textit{Faghih et al.}~\cite{faghih2015characterization} propose a state space model. Incorporating the time delay into the internal signal $\zeta_n(t)$, we define an internal state $x^{(n)}_2 (t)$ as $\zeta_n(t + \beta_n)$. The state-space model could be formulated as follows,
 %\begin{subequations} \label{fml:the:state-raw}
 %  \renewcommand{\theequation}
 %  {\theparentequation-\arabic{equation}}
@@ -294,7 +294,7 @@ The B-spline function $\psi(t)$ is produced by the following convolution
     \end{aligned}\right.
   \end{align}
 \end{subequations}
-where $\psi_1$ is the first-order function used for generating the B-spline function. $\kappa$ represents the knot size of the function. The knot size determines the shape of the function. The higher the knot size is, the smoother the function will be. 
+where $\psi_1$ is the first-order function used for generating the B-spline function. $\kappa$ represents the knot size of the function. The knot size determines the shape of the function. The larger the knot size is, the smoother the function will be. 
 
 The coefficients could be viewed as a time-series signal composed of several spikes, i.e. $q_n (t) = \sum_{j=1}^K q_{nj} \delta(t^{(s)_j})$. Conventionally, $q_n(t)$ is modeled by a spikes with fixed intervals, i.e. $t^{(s)_j} = t - jT_s$, where $T_s$ is the sampling rate of the coefficients. With these configurations, the coefficients are discretized by $\tilde{\mathbf{q}}_n = \begin{bmatrix}
 q_{n1} & q_{n2} & \cdots q_{nK}
