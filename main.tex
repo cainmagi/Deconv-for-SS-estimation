@@ -131,7 +131,7 @@ same stimuli would be detected at different times at different locations. We fol
 \end{align}
 where $\tau_r$ and $\tau_d$ represent the rise and decay times respectively.
 
-The difference between different channels in \eqref{fml:the:ode} is only the time delay. In other words, the solutions of $\zeta_n(t)$ for different $n$ are the same except the time delay. According to \eqref{fml:the:ode}, \textit{Faghih et al.}~\cite{faghih2015characterization} propose a state space model. Incorporating the time delay into the internal signal $\zeta_n(t)$, we define an internal state $x^{(n)}_2 (t)$ as $\zeta_n(t + \beta_n)$. The state-space model could be formulated as as follows,
+The difference between different channels in \eqref{fml:the:ode} is only the time delay. In other words, the solutions of $\zeta_n(t)$ for different $n$ are the same except the time delay. According to \eqref{fml:the:ode}, \textit{Faghih et al.}~\cite{faghih2015characterization} propose a state space model. Incorporating the time delay into the internal signal $\zeta_n(t)$, we define an internal state $x^{(n)}_2 (t)$ as $\zeta_n(t + \beta_n)$. The state-space model could be formulated as follows,
 %\begin{subequations} \label{fml:the:state-raw}
 %  \renewcommand{\theequation}
 %  {\theparentequation-\arabic{equation}}
@@ -294,7 +294,7 @@ The B-spline function $\psi(t)$ is produced by the following convolution
     \end{aligned}\right.
   \end{align}
 \end{subequations}
-where $\psi_1$ is the first-order function used for generating the B-spline function. $\kappa$ represents the knot size of the function. The knot size determines the shape of the function. The higher the knot size is, the smoother the function will be. 
+where $\psi_1$ is the first-order function used for generating the B-spline function. $\kappa$ represents the knot size of the function. The knot size determines the shape of the function. The larger the knot size is, the smoother the function will be. 
 
 The coefficients could be viewed as a time-series signal composed of several spikes, i.e. $q_n (t) = \sum_{j=1}^K q_{nj} \delta(t^{(s)_j})$. Conventionally, $q_n(t)$ is modeled by a spikes with fixed intervals, i.e. $t^{(s)_j} = t - jT_s$, where $T_s$ is the sampling rate of the coefficients. With these configurations, the coefficients are discretized by $\tilde{\mathbf{q}}_n = \begin{bmatrix}
 q_{n1} & q_{n2} & \cdots q_{nK}
@@ -430,9 +430,9 @@ where \eqref{fml:loss-channel} represents the loss function for the $n^{\mathrm{
   \caption{The reconstructed signals for the data collected from the $11^{\mathrm{th}}$ participant. (a) The volar middle phalanx data. (b) The medial plantar surface data. (c) The thenar/hypothenar data. (d) The solved neural stimuli.} \label{fig:results}
 \end{figure}
 
-Conventionally, it is difficult to decide the proper the regularization coefficients $\lambda,~\mu_n$. In our work, we take the optimization of the coefficients into the consideration. The optimization is based on Focal Underdetermined System Solver (FOCUSS+) algorithm~\cite{murray2005visual}, while the estimation of the tunable regularization coefficients is based on  generalized cross-validation (GCV) method~\cite{zdunek2008improved}. 
+Conventionally, it is difficult to decide the proper regularization coefficients $\lambda,~\mu_n$. In our work, we take the optimization of the coefficients into the consideration. The optimization is based on Focal Underdetermined System Solver (FOCUSS+) algorithm~\cite{murray2005visual}, while the estimation of the tunable regularization coefficients is based on  generalized cross-validation (GCV) method~\cite{zdunek2008improved}. 
 
-To solve the joint problem in \eqref{fml:the:optimization}, we need to divide the problem into two sub-problems and solve them alternatively. This technique is called concurrent coordinate descent method. The whole algorithm is discussed in \Cref{alg:deconvolution}. The algorithm has 2 phases. In the both phases, the tonic component and the phasic component are solved alternatively, the only difference is the regularization method. In the first phase, we make the initialization ratio fixed to simplify the algorithm. This phase is used for finding a good initialization. In the beginning of the initialization phase, we use conventional method to generate the tonic component bases, where the intervals between two basis are fixed.
+To solve the joint problem in \eqref{fml:the:optimization}, we need to divide the problem into two sub-problems and solve them alternatively. This technique is called concurrent coordinate descent method. The whole algorithm is discussed in \Cref{alg:deconvolution}. The algorithm has 2 phases. In both phases, the tonic component and the phasic component are solved alternatively, the only difference is the regularization method. In the first phase, we make the initialization ratio fixed to simplify the algorithm. This phase is used for finding a good initialization. In the beginning of the initialization phase, we use conventional method to generate the tonic component bases, where the intervals between two basis are fixed.
 
 \begin{figure}[!tb]
   \centering
@@ -444,7 +444,7 @@ To solve the joint problem in \eqref{fml:the:optimization}, we need to divide th
   \caption{The reconstructed signals for the data collected from the $12^{\mathrm{th}}$ participant. (a) The volar middle phalanx data. (b) The medial plantar surface data. (c) The thenar/hypothenar data. (d) The solved neural stimuli.} \label{fig:12results}
 \end{figure}
 
-In the second phase, the optimization could be divided into an outer loop and an inner loop. In the outer loop, we solve the modeling parameters $\boldsymbol{\theta}$. The deconvolution and with the tonic extraction is performed in the inner loop. Particularly, given the solution of $\{\mathbf{q}_n\}_{n=1}^{\chi}$, when solving the tonic component, for any $n$, we need to solve the following constrained quadratic problem,
+In the second phase, the optimization could be divided into an outer loop and an inner loop. In the outer loop, we solve the modeling parameters $\boldsymbol{\theta}$. The deconvolution and the tonic extraction is performed in the inner loop. Particularly, given the solution of $\{\mathbf{q}_n\}_{n=1}^{\chi}$, when solving the tonic component, for any $n$, we need to solve the following constrained quadratic problem,
 \begin{subequations} \label{fml:the:second-tonic}
   \renewcommand{\theequation}
   {\theparentequation-\arabic{equation}}
@@ -500,7 +500,7 @@ To simplify the calculation, we downsample the data by setting $T_y=1\rm{s}$. Th
 
 \section{Discussion}
 
-The solutions in \Cref{fig:results} and \Cref{fig:12results} show a high fitness between the reconstructed signals and the raw data. By utilizing the multi-channel data, the influence of the noise is eliminated. For example, although there is an unfitness near 520s in \Cref{fig:middle_phalanx}, the other two channels could still achieve good fitness and suggest a correct impulse in the neural stimuli.
+The solutions in \Cref{fig:results} and \Cref{fig:12results} show a high fitness between the reconstructed signals and the raw data. By utilizing the multi-channel data, the influence of the noise is eliminated. For example, although there is an unfitness near 520s in \Cref{fig:middle_phalanx}, the other two channels could still achieve good fitness and suggest the correct impulse in the neural stimuli.
 
 \begin{figure}[!tb]
   \centering
@@ -518,11 +518,11 @@ The solutions in \Cref{fig:results} and \Cref{fig:12results} show a high fitness
   \caption{Reconstructed signal for the thenar/hypothenar data of the participant 11 with different tonic extraction methods. (a) Conventional tonic extraction. (b) Our tonic extraction.} \label{fig:comptonic}
 \end{figure}
 
-Experiments show that the fitness of the final solution is highly dependent of the quality of the solved tonic component. In previous works~\cite{greco2015cvxeda,amin2019tonic}, the B-spline bases are sampled by a fixed interval. In these methods, it is very tricky for determining how long the interval should be. If the interval is too small, there would be a deformation for the solved phasic component. If too large, the solved tonic component would be over-smoothed. According to \eqref{fml:the:ode}, since the neural stimuli are a series of sparse impulese, the phasic component is modeled by a series of peaks. According to \eqref{fml:tonic-conv}, the tonic component could be also viewed as a combination of B-spline peaks. Empirically, we find that when each peak of the tonic component appears a little bit later than the impulses of neural stimuli, the solution could reach the highest fitness. Inspired by this inspection, we propose the adaptive B-spline bases in \eqref{fml:tonic-basis-1}. In \Cref{fig:bases}, we compare the bases generated by the conventional method and our method when the shape of the bases are configured same. In \Cref{fig:bases-c}, we use gray lines to represent the location of the solved neural stimuli. We could find that the bases generated by our method is more sparse, and the position of each basis is related to the appearance of neural stimuli.
+Experiments show that the fitness of the final solution is highly dependent on the quality of the solved tonic component. In previous works~\cite{greco2015cvxeda,amin2019tonic}, the B-spline bases are sampled by a fixed interval. In these methods, it is very tricky for determining how long the interval should be. If the interval is too small, there would be a deformation for the solved phasic component. If too large, the solved tonic component would be over-smoothed. According to \eqref{fml:the:ode}, since the neural stimuli is a series of sparse impulses, the phasic component is modeled by a series of peaks. According to \eqref{fml:tonic-conv}, the tonic component could be also viewed as a combination of B-spline peaks. Empirically, we find that when each peak of the tonic component appears a little bit later than the impulses of neural stimuli, the solution could reach the highest fitness. Inspired by this inspection, we propose the adaptive B-spline bases in \eqref{fml:tonic-basis-1}. In \Cref{fig:bases}, we compare the bases generated by the conventional method and our method when the shape of the bases are configured same. In \Cref{fig:bases-c}, we use gray lines to represent the location of the solved neural stimuli. We could find that the bases generated by our method is more sparse, and the position of each basis is related to the appearance of neural stimuli.
 
 In \Cref{fig:comptonic}, we take the thenar/hypothenar data as an example. We perform two experiments with all the same configurations except for the tonic extraction methods. The results are produced by the fixed bases in \Cref{fig:bases-c0} and the adaptive bases in \Cref{fig:bases-c} respectively. With our method, the fitness is significantly improved in the region marked by red circles. In the conventional method, because the interval between bases is fixed, the marked tonic component peak is almost near the end of one phasic component peak. In comparison, our method ensures that the tonic component peak is nearly centered in the range of one phasic component peak.
 
-Currently, we are using a fixed delay $T_{ds}$ for determining the relative position of the tonic bases, this may be not a best configuration. In the future work, we could make the delay for each basis learnable, and find the optimal relative delay by the algorithm. 
+Currently, we are using a fixed delay $T_{ds}$ for determining the relative position of the tonic bases, this may not be a best configuration. In the future work, we could make the delay for each basis learnable, and find the optimal relative delay by the algorithm. 
 
 \section{Conclusion}
 
