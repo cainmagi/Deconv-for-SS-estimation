@@ -31,6 +31,9 @@
 
 \providecommand{\od}{\mathrm{d}}
 
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
 \begin{document}
 
 \maketitle
@@ -308,6 +311,60 @@ The whole algorithm for the optimization is discussed in \autoref{alg:deconvolut
     \ENDFOR
   \end{algorithmic}
 \end{algorithm}
+
+\begin{subequations} \label{fml:the:optimization2}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{align}
+  \argmin\limits_{\substack{\boldsymbol{\theta},~\mathbf{u}, \\ \{\mathbf{q}_n\}_{n=1}^{\chi}, \\ \lambda,~\{\mu_n\}_{n=1}^{\chi}}} & \frac{1}{\chi} \left( \sum_{n=1}^{\chi} \mathcal{J}_n + \mu_n \lVert \mathbf{q}_n \rVert_2^2 \right) + \lambda \lVert \mathbf{u} \rVert^p_p, \\
+  \mathrm{s.t.}~&\mathcal{J}_n = \lVert \mathbf{y}_n - \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} - \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u} - \mathbf{S} \mathbf{q}_n \rVert^2_2, \label{fml:loss-channel2}\\
+  & \boldsymbol{\Gamma} \boldsymbol{\theta} \preccurlyeq \mathbf{b},~ \mathbf{u} \succcurlyeq \mathbf{0} \label{fml:cons-phasic2}\\
+  & \forall~n,~\mathbf{q}_n \succcurlyeq \mathbf{0},~\mathbf{S}\mathbf{q}_n \preccurlyeq \mathbf{y}_n, \label{fml:cons-tonic2}
+  \end{align}
+\end{subequations}
+
+$m^{\mathrm{th}}$ \qquad $\tilde{\mathbf{S}}$ \qquad $t^{(u)}_k$
+
+\begin{align} \label{fml:tonic-basis-1}
+\begin{aligned}
+\tilde{\mathbf{s}}_m = \big[ &\psi(mT_y - t^{(u)}_1 - T_{ds}) & \psi(mT_y - t^{(u)}_2 - T_{ds}) && \cdots && \psi(mT_y - t^{(u)}_K - T_{ds}) \big].
+\end{aligned}
+\end{align}
+
+\begin{align} \label{fml:tonic-basis-2}
+\mathbf{R} = \begin{bmatrix}
+1/M & 2/M & 3/M & 4/M & \cdots & 1 \\
+1 & 1 & 1 & 1 & \cdots & 1 
+\end{bmatrix}^T,
+\end{align}
+
+\begin{align}
+\mathbf{s}_n = \mathbf{S} \mathbf{q}_n = \begin{bmatrix}
+\tilde{\mathbf{S}} & \mathbf{R}
+\end{bmatrix} \begin{bmatrix}
+\tilde{\mathbf{q}}_n \\ r_{1n} \\ r_{0n}
+\end{bmatrix}.
+\end{align}
+
+\begin{subequations} \label{fml:the:second-tonic}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{align}
+  \argmin\limits_{\mathbf{q}_n} & \lVert \mathbf{s}_n - \mathbf{S} \mathbf{q}_n \rVert^2_2 + \mu_n \lVert \mathbf{q}_n \rVert_2^2, \\
+  \mathrm{s.t.}~& \mathbf{s}_n = \mathbf{y}_n - \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} - \mathcal{D}_{\boldsymbol{\theta}_n} \mathbf{u}, \label{fml:the:second-tonic-obj}\\
+  & \forall~n,~\mathbf{q}_n \succcurlyeq \mathbf{0},~\mathbf{S}\mathbf{q}_n \preccurlyeq \mathbf{y}_n,
+  \end{align}
+\end{subequations}
+
+\begin{subequations} \label{fml:the:second-phasic}
+  \renewcommand{\theequation}
+  {\theparentequation-\arabic{equation}}
+  \begin{align}
+  \argmin\limits_{\boldsymbol{\theta},~\mathbf{u}} & \frac{1}{\chi}  \left( \sum_{n=1}^{\chi} \lVert \mathbf{p}_n - \mathcal{F}_{\boldsymbol{\theta}_n} \mathbf{z}_{0} - \mathcal{D}_{\boldsymbol{\theta}_n} \rVert^2_2 \right) + \lambda \lVert \mathbf{u} \rVert_p^p, \\
+  \mathrm{s.t.}~& \mathbf{p}_n = \mathbf{y}_n -  \mathbf{S} \mathbf{q}_n, \\
+  & \boldsymbol{\Gamma} \boldsymbol{\theta} \preccurlyeq \mathbf{b},~ \mathbf{u} \succcurlyeq \mathbf{0}.
+  \end{align}
+\end{subequations}
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}

@@ -6,6 +6,10 @@ Now the project is being processed. We will update more informations in the futu
 
 ## Update report
 
+### 0.9 @ 05/04/2020
+
+1. Revise the report according to Rafiul's advice.
+
 ### 0.7 @ 03/30/2020
 
 1. Finish the result report, and integrate all reports together.
